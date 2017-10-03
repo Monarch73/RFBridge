@@ -9,7 +9,8 @@
 	#include "WProgram.h"
 #endif
 
-#include <WiFiServer.h>
+#include <ESPAsyncTCP.h>
+#include "CallbackType.h"
 
 #define N_INPUTBUFFER 1024
 const char SETUP_TEMPLATE[] PROGMEM =
@@ -34,10 +35,13 @@ const char HEADERS[] PROGMEM =
 "CONNECTION: close\r\n\r\n"
 "%s\r\n";
 
+
 enum REQUESTPAGE
 {
 	NONE = 0,
-	SETUP
+	SETUP,
+	SWITCHON,
+	SWITCHOFF
 };
 
 class HttpServer
@@ -45,17 +49,30 @@ class HttpServer
 public:
 	HttpServer();
 	~HttpServer();
-	void Start(int port, char *devicename, char *uuid);
-	void SendTcpResponse(WiFiClient *client);
+	void Start(int port, char *devicename, char *uuid, callbacktype methodOn, callbacktype methodOff, void *arg);
 
 	void Handle();
 
 private:
-	WiFiServer *_server;
+	AsyncServer *_server;
+	AsyncClient *_client;
 	char *_name;
 	char *_uuid;
 	REQUESTPAGE _requestedPage;
+	uint16_t _objId;
 	char *inputBuffer;
+	void SendTcpResponse(AsyncClient *client);
+	void SendTcpResponseOK(AsyncClient *client);
+	static void onClient(void *obj, AsyncClient* c);
+	static void onData(void *obj, AsyncClient* c, void *buf, size_t len);
+	static void onTimeout(void *obj, AsyncClient* c, uint32_t time);
+	static void onDisconnect(void *obj, AsyncClient* c);
+	static void onAck(void *obj, AsyncClient* c, size_t len, uint32_t time);
+	static void onError(void *obj, AsyncClient* c, int8_t error);
+	static void onPoll(void *obj, AsyncClient* c);
+	callbacktype _methodOn;
+	callbacktype _methodOff;
+	void *_arg;
 };
 
 #endif

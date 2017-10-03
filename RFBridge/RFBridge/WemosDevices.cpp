@@ -64,13 +64,13 @@ void WemosDevices::Start()
 	}
 }
 
-void WemosDevices::AddDevice(char *name)
+void WemosDevices::AddDevice(char *name, callbacktype methodOn,callbacktype methodOff, void *arg)
 {
 	for (int i = 0; i < N_SERVER; i++)
 	{
 		if (this->_servers[i] == NULL)
 		{
-			this->_servers[i] = new AlexaClient(name, i);
+			this->_servers[i] = new AlexaClient(name, i, methodOn, methodOff,arg);
 			return;
 		}
 	}

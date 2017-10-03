@@ -1,8 +1,16 @@
+#include <ESP8266mDNS.h>
+#include <tcp_axtls.h>
+#include <SyncClient.h>
+#include <ESPAsyncTCPbuffer.h>
+#include <ESPAsyncTCP.h>
+#include <async_config.h>
+#include <AsyncPrinter.h>
 #include "HelperClass.h"
 #include "Client.h"
 #include "WemosDevices.h"
 #include "HttpServer.h"
 #include <ESP8266WiFi.h>
+#include <ArduinoOTA\ArduinoOTA.h>
 
 const char * ssid = "Datenpuste";
 const char * password = "lidenise";
@@ -26,11 +34,18 @@ void setup() {
 		while (1);
 	}
 
+	if (!MDNS.begin("esp8266")) {             // Start the mDNS responder for esp8266.local
+		Serial.println("Error setting up MDNS responder!");
+	}
+	Serial.println("mDNS responder started");
+
 	wemos.Start();
-	wemos.AddDevice("Radio");
+	wemos.AddDevice("decke",NULL,NULL,NULL);
+	wemos.AddDevice("Herd",NULL,NULL,NULL);
 }
 
 void loop() {
+	ArduinoOTA.handle();
 	// put your main code here, to run repeatedly:
 	wemos.Handle();
 }

@@ -11,6 +11,7 @@
 
 #include "ESPAsyncUDP.h"
 #include "HttpServer.h"
+#include "CallbackType.h"
 
 const char UDP_TEMPLATE[] PROGMEM =
 "HTTP/1.1 200 OK\r\n"
@@ -29,7 +30,7 @@ const char UDP_TEMPLATE[] PROGMEM =
 class AlexaClient
 {
 public:
-	AlexaClient(char *name,int id);
+	AlexaClient(char *name,int id, callbacktype methodOn, callbacktype methodOff, void *arg);
 	~AlexaClient();
 	void SendUdpResponse(AsyncUDPPacket *udp);
 	void Handle();
@@ -42,6 +43,9 @@ private:
 	char *_name;
 	char *_ip;
 	HttpServer *_server;
+	callbacktype _methodOn;
+	callbacktype _methodOff;
+	void *_arg;
 };
 
 

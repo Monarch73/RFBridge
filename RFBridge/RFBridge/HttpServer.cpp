@@ -3,11 +3,12 @@
 // 
 
 #include "HttpServer.h"
-#include <WiFiClient.h>
 #include "HelperClass.h"
 
 HttpServer::HttpServer()
 {
+	this->_objId = 0x0c1a0;
+	this->_client = NULL;
 	this->inputBuffer = (char *)malloc(N_INPUTBUFFER);
 	if (this->inputBuffer == NULL)
 	{
@@ -16,65 +17,176 @@ HttpServer::HttpServer()
 	}
 }
 
-void HttpServer::Start(int port, char *devicename, char *uuid)
+void HttpServer::onPoll(void *obj, AsyncClient* c) {
+	//os_printf("p:%lu\n", millis());
+}
+
+void HttpServer::onError(void *obj, AsyncClient* c, int8_t error) {
+	HttpServer *tthis = (HttpServer *)obj;
+	os_printf("e:%d\n", error);
+}
+
+void HttpServer::onAck(void *obj, AsyncClient* c, size_t len, uint32_t time) {
+	HttpServer *tthis = (HttpServer *)obj;
+	os_printf("a:%u:%u\n", len, time);
+}
+
+void HttpServer::onDisconnect(void *obj, AsyncClient* c) {
+	HttpServer *tthis = (HttpServer *)obj;
+
+	os_printf("d\n");
+	c->free();
+	delete c;
+	tthis->_client = NULL;
+}
+
+void HttpServer::onTimeout(void *obj, AsyncClient* c, uint32_t time) {
+	HttpServer *tthis = (HttpServer *)obj;
+
+	os_printf("t:%u\n", time);
+	tthis->_client->close();
+}
+
+void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
+	//os_printf("rx:%u\n", len);
+	//size_t i;
+	//for (i = 0; i<len; i++) {
+	//	while (((U0S >> USTXC) & 0x7F) != 0);
+	//	U0F = ((uint8_t*)buf)[i];
+	//}
+	HttpServer *tthis = (HttpServer *)obj;
+	if (tthis->_objId == 0x0c1a0)
+	{
+		char *inputBuffer = (char *)buf;
+		Serial.println("onData1");
+
+		if (HelperClass::sstrstr(inputBuffer, "setup.xml", len) != NULL)
+		{
+			Serial.println("Setuppage detected");
+			tthis->_requestedPage = SETUP;
+		}
+		else if (HelperClass::sstrstr(inputBuffer, "<BinaryState>1</BinaryState>",len) != NULL)
+		{
+			Serial.println("on detected");
+			tthis->_requestedPage = SWITCHON;
+		}
+		else if (HelperClass::sstrstr(inputBuffer, "<BinaryState>0</BinaryState>",len) != NULL)
+		{
+			Serial.println("off detected");
+			tthis->_requestedPage = SWITCHOFF;
+		}
+		Serial.println("onData2");
+
+		Serial.println("onData3");
+
+		switch (tthis->_requestedPage)
+		{
+		case SETUP:
+			Serial.println("onData4");
+
+			tthis->SendTcpResponse(c);
+			break;
+		case SWITCHON:
+			tthis->SendTcpResponseOK(c);
+			if (tthis->_methodOn != NULL && tthis->_arg != NULL)
+			{
+				tthis->_methodOn(tthis->_arg);
+			}
+			break;
+		case SWITCHOFF:
+			Serial.println("onData5");
+			if (tthis->_methodOff != NULL && tthis->_arg != NULL)
+			{
+				tthis->_methodOff(tthis->_arg);
+			}
+
+			tthis->SendTcpResponseOK(c);
+
+			break;
+		default:
+			break;
+		}
+
+		Serial.println("onData6");
+
+		tthis->_requestedPage = NONE;
+		Serial.println("onData7");
+
+		c->close();
+		Serial.println("onData8");
+
+		c->free();
+		Serial.println("onData9");
+
+		//delete c;
+		Serial.println("onData10");
+
+		tthis->_client = NULL;
+	}
+	else
+	{
+		Serial.println("onData invalid reference");
+	}
+
+
+}
+
+void HttpServer::onClient(void *obj, AsyncClient* c) {
+	Serial.println("onClient1");
+	HttpServer *tthis = (HttpServer *)obj;
+	Serial.println("onClient2");
+	if (tthis->_objId == 0x0c1a0)
+	{
+		if (tthis->_client)
+		{
+			Serial.println("onClient3");
+
+			if (tthis->_client->connected())
+			{
+				Serial.println("onClient4");
+
+				tthis->_client->close();
+			}
+		}
+	}
+	else
+	{
+		Serial.println("Invalid this reference");
+		return;
+	}
+
+	Serial.println("onClient5");
+
+	tthis->_client = c;
+	tthis->_client->onError(HttpServer::onError,tthis);
+	tthis->_client->onAck(HttpServer::onAck, tthis);
+	tthis->_client->onDisconnect(HttpServer::onDisconnect,tthis);
+	tthis->_client->onTimeout(HttpServer::onTimeout,tthis);
+	tthis->_client->onData(HttpServer::onData,tthis);
+	//client->onPoll(onPoll);
+
+	Serial.println("onClient6");
+
+}
+
+void HttpServer::Start(int port, char *devicename, char *uuid, callbacktype methodOn, callbacktype methodOff, void *arg)
 {
 	Serial.println("Starting Server on Port "+ String(port));
-	this->_server = new WiFiServer(port);
+	this->_server = new AsyncServer(port);
+	this->_server->onClient(HttpServer::onClient, this);
 	this->_name = devicename;
 	this->_uuid = uuid;
 	this->_server->begin();
+	this->_methodOn = methodOn;
+	this->_methodOff = methodOff;
+	this->_arg = arg;
 }
 
 void HttpServer::Handle()
 {
-	// listen for incoming clients
-	WiFiClient client = this->_server->available();
-	if (client) {
-		Serial.println("new client");
-		// an http request ends with a blank line
-		while (client.connected()) {
-			if (client.available()) {
-				char buf[10];
-				int len = client.readBytes(inputBuffer, N_INPUTBUFFER);
-				Serial.write(inputBuffer, len);
-				////for (int i = 0; i < len; i++)
-				////{
-				////	sprintf(buf, "%x", *(inputBuffer + i));
-				////	Serial.print(buf);
-				////}
-				////Serial.println("Test");
-				if (HelperClass::sstrstr(inputBuffer, "setup.xml", len) != NULL)
-				{
-					Serial.println("Setuppage detected");
-					this->_requestedPage = SETUP;
-				}
-				// if you've gotten to the end of the line (received a newline
-				// character) and the line is blank, the http request has ended,
-				// so you can send a reply
-				if (HelperClass::strends(inputBuffer,"\n\n",len)==0 || HelperClass::strends(inputBuffer, "\r\n\r\n", len)==0) {
-					// send a standard http response header
-					switch (this->_requestedPage)
-					{
-					case SETUP:
-						this->SendTcpResponse(&client);
-						break;
-					default:
-						break;
-					}
-					break;
-				}
-			}
-		}
-		// give the web browser time to receive the data
-		delay(1);
-
-		// close the connection:
-		client.stop();
-		Serial.println("client disonnected");
-	}
 }
 
-void HttpServer::SendTcpResponse(WiFiClient * client)
+void HttpServer::SendTcpResponse(AsyncClient * client)
 {
 	char outputbuffer1[sizeof(SETUP_TEMPLATE) + 50];
 	char outputbuffer2[sizeof(HEADERS) + sizeof(SETUP_TEMPLATE) + 50];
@@ -82,4 +194,16 @@ void HttpServer::SendTcpResponse(WiFiClient * client)
 
 	sprintf_P(outputbuffer2, HEADERS, strlen(outputbuffer1), outputbuffer1);
 	client->write(outputbuffer2, strlen(outputbuffer2));
+	Serial.write(outputbuffer2, strlen(outputbuffer2));
+}
+
+void HttpServer::SendTcpResponseOK(AsyncClient *client)
+{
+	Serial.println("sending ok");
+		const char *response = 
+	"HTTP/1.1 200 OK\r\n"
+	"Content-Type: text/plain\r\n"
+	"Content-Length: 0\r\n\r\n";
+
+	client->write(response, strlen(response));
 }

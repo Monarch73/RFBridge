@@ -5,7 +5,7 @@
 #include <ESP8266WiFi.h>
 #include "AlexaClient.h"
 
-AlexaClient::AlexaClient(char *name,int id)
+AlexaClient::AlexaClient(char *name,int id, callbacktype methodOn, callbacktype methodOff, void *arg)
 {
 	char uuid[15];
 	sprintf(uuid, "444556%06X%02X\0", ESP.getChipId(), id); // "DEV" + CHIPID + DEV_ID
@@ -20,8 +20,11 @@ AlexaClient::AlexaClient(char *name,int id)
 	this->_name = strdup(name);
 	this->_uuid = strdup(uuid);
 	this->_ip = strdup(buffer);
+	this->_methodOn = methodOn;
+	this->_methodOff = methodOff;
+	this->_arg = arg;
 	this->_server = new HttpServer();
-	this->_server->Start(this->_port, this->_name, this->_uuid);
+	this->_server->Start(this->_port, this->_name, this->_uuid,this->_methodOn,this->_methodOff,this->_arg);
 }
 
 void AlexaClient::SendUdpResponse(AsyncUDPPacket *udp)

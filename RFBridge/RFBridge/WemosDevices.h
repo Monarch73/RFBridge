@@ -10,6 +10,7 @@
 #endif
 // "ESPAsyncUDP" requires updated arduino-core. Follow instructions at 
 // http://www.monarch.de/redmine/projects/hueskeo/wiki/Update_arduino_esp8266-core
+
 #include "ESPAsyncUDP.h"
 #include "AlexaClient.h"
 #include "HttpServer.h"
@@ -18,6 +19,7 @@
 
 #define N_SERVER	16
 
+
 class WemosDevices
 {
 public:
@@ -25,7 +27,7 @@ public:
 	~WemosDevices();
 	void Start();
 	void Handle();
-	void AddDevice(char *name);
+	void AddDevice(char *name,callbacktype methodOn, callbacktype methodOff, void *arg=0);
 
 private:
 

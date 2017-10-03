@@ -1,3 +1,5 @@
+#include <RCSwitch.h>
+#include "EStore.h"
 #include <ESP8266mDNS.h>
 #include <tcp_axtls.h>
 #include <SyncClient.h>
@@ -16,6 +18,8 @@ const char * ssid = "Datenpuste";
 const char * password = "lidenise";
 
 WemosDevices wemos;
+EStore estore = EStore();
+RCSwitch mySwitch = RCSwitch();
 
 void setup() {
 	Serial.begin(115200);
@@ -33,7 +37,7 @@ void setup() {
 		Serial.println("check failed");
 		while (1);
 	}
-
+	estore.setupEeprom();
 	if (!MDNS.begin("esp8266")) {             // Start the mDNS responder for esp8266.local
 		Serial.println("Error setting up MDNS responder!");
 	}

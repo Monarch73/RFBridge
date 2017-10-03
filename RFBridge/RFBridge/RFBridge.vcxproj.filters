@@ -30,6 +30,9 @@
     <ClInclude Include="AlexaClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HelperClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="board.txt" />
@@ -42,6 +45,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AlexaClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HelperClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

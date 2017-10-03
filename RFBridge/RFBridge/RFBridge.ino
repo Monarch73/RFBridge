@@ -1,3 +1,4 @@
+#include "HelperClass.h"
 #include "Client.h"
 #include "WemosDevices.h"
 #include "HttpServer.h"
@@ -19,11 +20,17 @@ void setup() {
 		}
 	}
 
-	wemos.Start();
+	if (HelperClass::strends("niels", "ls", 5) != 0)
+	{
+		Serial.println("check failed");
+		while (1);
+	}
 
+	wemos.Start();
+	wemos.AddDevice("Radio");
 }
 
 void loop() {
 	// put your main code here, to run repeatedly:
-
+	wemos.Handle();
 }

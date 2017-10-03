@@ -8,7 +8,7 @@
 #else
 	#include "WProgram.h"
 #endif
-// this requires updated arduino-core. Follow instructions at 
+// "ESPAsyncUDP" requires updated arduino-core. Follow instructions at 
 // http://www.monarch.de/redmine/projects/hueskeo/wiki/Update_arduino_esp8266-core
 #include "ESPAsyncUDP.h"
 #include "AlexaClient.h"
@@ -17,8 +17,6 @@
 #define UDP_DEVICE_PATTERN      "urn:Belkin:device:**"
 
 #define N_SERVER	16
-
-
 
 class WemosDevices
 {
@@ -33,7 +31,6 @@ private:
 
 	AsyncUDP _udp;
 	AlexaClient **_servers;
-	HttpServer *_web;
 };
 
 

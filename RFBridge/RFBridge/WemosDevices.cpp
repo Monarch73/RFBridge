@@ -18,14 +18,11 @@ void WemosDevices::Start()
 		_servers[i] = NULL;
 	}
 
-	this->_web = new HttpServer();
-	this->_web->Start(80, "test");
-
 	if (_udp.listenMulticast(IPAddress(239, 255, 255, 250), 1900))
 	{
 		Serial.println(WiFi.localIP());
 
-		_udp.onPacket([](AsyncUDPPacket packet) {
+		_udp.onPacket([this](AsyncUDPPacket packet) {
 			char *data = (char *)packet.data();
 			Serial.print("UDP Packet Type: ");
 			Serial.print(packet.isBroadcast() ? "Broadcast" : packet.isMulticast() ? "Multicast" : "Unicast");
@@ -40,7 +37,7 @@ void WemosDevices::Start()
 			Serial.print(", Length: ");
 			Serial.print(packet.length());
 			Serial.print(", Data: ");
-			Serial.write(packet.data(), packet.length());
+//			Serial.write(packet.data(), packet.length());
 			Serial.println();
 			//reply to the client
 			packet.printf("Got %u bytes of data", packet.length());
@@ -49,6 +46,13 @@ void WemosDevices::Start()
 				if (strstr((char *)data, UDP_DEVICE_PATTERN) != NULL)
 				{
 					Serial.println("Ich glaub, ich sollte antworten.");
+					for (int i = 0; i < N_SERVER; i++)
+					{
+						if (_servers[i] != NULL)
+						{
+							_servers[i]->SendUdpResponse(&packet);
+						}
+					}
 				}
 			}
 
@@ -56,13 +60,31 @@ void WemosDevices::Start()
 	}
 	else
 	{
-		Serial.print("Failed to install multicast listener");
+		Serial.println("Failed to install multicast listener");
+	}
+}
+
+void WemosDevices::AddDevice(char *name)
+{
+	for (int i = 0; i < N_SERVER; i++)
+	{
+		if (this->_servers[i] == NULL)
+		{
+			this->_servers[i] = new AlexaClient(name, i);
+			return;
+		}
 	}
 }
 
 void WemosDevices::Handle()
 {
-	this->_web->Handle();
+	for (int i = 0; i < N_SERVER; i++)
+	{
+		if (this->_servers[i])
+		{
+			this->_servers[i]->Handle();
+		}
+	}
 }
 
 WemosDevices::WemosDevices()

@@ -1,9 +1,8 @@
+#include <ESPAsyncWebServer.h>
+#include <AsyncEventSource.h>
 #include <RCSwitch.h>
 #include "EStore.h"
 #include <ESP8266mDNS.h>
-#include <tcp_axtls.h>
-#include <SyncClient.h>
-#include <ESPAsyncTCPbuffer.h>
 #include <ESPAsyncTCP.h>
 #include <async_config.h>
 #include <AsyncPrinter.h>
@@ -20,6 +19,7 @@ const char * password = "lidenise";
 WemosDevices wemos;
 EStore estore = EStore();
 RCSwitch mySwitch = RCSwitch();
+AsyncWebServer server(80);
 
 void setup() {
 	Serial.begin(115200);
@@ -32,11 +32,6 @@ void setup() {
 		}
 	}
 
-	if (HelperClass::strends("niels", "ls", 5) != 0)
-	{
-		Serial.println("check failed");
-		while (1);
-	}
 	estore.setupEeprom();
 	if (!MDNS.begin("esp8266")) {             // Start the mDNS responder for esp8266.local
 		Serial.println("Error setting up MDNS responder!");

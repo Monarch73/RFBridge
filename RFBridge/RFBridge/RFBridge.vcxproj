@@ -93,6 +93,7 @@
     <ClInclude Include="HelperClass.h" />
     <ClInclude Include="HttpServer.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="WebInterface.h" />
     <ClInclude Include="WemosDevices.h" />
     <ClInclude Include="__vm\.RFBridge.vsarduino.h" />
   </ItemGroup>
@@ -104,6 +105,7 @@
     <ClCompile Include="EStore.cpp" />
     <ClCompile Include="HelperClass.cpp" />
     <ClCompile Include="HttpServer.cpp" />
+    <ClCompile Include="WebInterface.cpp" />
     <ClCompile Include="WemosDevices.cpp" />
   </ItemGroup>
   <ItemGroup>

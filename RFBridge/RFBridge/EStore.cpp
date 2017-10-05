@@ -16,10 +16,10 @@ EStore::~EStore()
 {
 }
 
-void EStore::setupEeprom(void)
+void EStore::setupEeprom(bool doit)
 {
 	EEPROM.begin((sizeof(dipswitches_struct)*N_DIPSWITCHES) + 4 + N_CHAR_PASSWORD + N_CHAR_SSID);
-	if (EEPROM.read(0) != 'N' || EEPROM.read(1) != 'H' || EEPROM.read(2) != N_DIPSWITCHES || EEPROM.read(3) != sizeof(dipswitches_struct))
+	if (doit || EEPROM.read(0) != 'N' || EEPROM.read(1) != 'H' || EEPROM.read(2) != N_DIPSWITCHES || EEPROM.read(3) != sizeof(dipswitches_struct))
 
 	{
 		typedef struct dipswitches_struct empty;

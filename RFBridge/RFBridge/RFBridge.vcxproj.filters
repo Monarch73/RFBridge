@@ -45,6 +45,9 @@
     <ClInclude Include="DipSwitches.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WebInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="board.txt" />
@@ -63,6 +66,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EStore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WebInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

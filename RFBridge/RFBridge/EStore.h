@@ -20,7 +20,7 @@ public:
 	static char password[N_CHAR_PASSWORD];
 	EStore();
 	~EStore();
-	void setupEeprom(void);
+	void setupEeprom(bool = false);
 	void dipSwitchLoad(int, dipswitches_struct *);
 	void dipSwitchDelete(int);
 	void dipSwitchSave(int, dipswitches_struct *);

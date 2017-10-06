@@ -2,4 +2,6 @@ from ubuntu
 
 add shell.sh /shell.sh
 
-cmd /shell.sh
+run /shell.sh
+
+cmd /bin/bash

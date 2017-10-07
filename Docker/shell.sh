@@ -1,7 +1,7 @@
 #!/bin/bash
 
 apt-get update
-apt-get install -y build-essential autoconf git python2.7
+apt-get install -y make git python2.7
 
 mkdir /esp
 cd /esp

@@ -42,20 +42,43 @@ char HTML_SSIDOK[] PROGMEM =
 "<h1>Steckdosensteuerung OK - Please reset device.</h1>"
 "</center></body>";
 
+char HTML_TITLE[] PROGMEM =
+"<h1>Steckdosensteuerung</h1>";
+
+char HTML_CONTROL[] PROGMEM =
+"<p><form method=\"POST\" action=\"/send\">Housecode:<input type=\"TEXT\" name=\"house\" /> Code:<input type=\"TEXT\" name=\"code\" /> Ein/aus:<input type=\"TEXT\" name=\"onoff\" /><input type=\"submit\" name=\"send\" value=\"schalten\" /></form></p>"
+"<p><form method=\"POST\" action=\"/estore\">Name:<input type=\"TEXT\" name=\"name\" /> Housecode:<input type=\"TEXT\" name=\"house\" /> Code:<input type=\"TEXT\" name=\"code\" /> Room:<input type=\"TEXT\" name=\"roomname\" /><input type=\"submit\" name=\"speichern\" value=\"speichern\" /></form></p>"
+"</center></body>";
+
+char HTML_DEVCONTROL_1[] PROGMEM =
+"<a href=\"esocket?no=";
+
+char HTML_DEVCONTROL_2[] PROGMEM =
+"&sw=1\"><button>AN</button></a>&nbsp;<a href=\"esocket?no=";
+char HTML_DEVCONTROL_3[] PROGMEM =
+"&sw=0\"><button>AUS</button></a><a href=\"edelete?no=";
+char HTML_DEVCONTROL_4[] PROGMEM =
+"&sw=0\"><button>Loeschen</button></a></p>";
+
 
 EStore *WebInterface::estore;
+bool WebInterface::rebuildHTML;
+char *WebInterface::outputbuffer=NULL;
+RCSwitch *WebInterface::_mySwitch;
+WemosDevices *WebInterface::_myWemos;
+
 
 void WebInterface::HandleSetupRoot(AsyncWebServerRequest *request)
 {
-	char outputbuffer[sizeof(HTML_HEADER)+sizeof(HTML_SSID)+5];
-	strcpy_P(outputbuffer, HTML_HEADER);
-	strcat_P(outputbuffer, HTML_SSID);
-	request->send(200, "text / plain", outputbuffer);
+	char setupoutputbuffer[sizeof(HTML_HEADER)+sizeof(HTML_SSID)+5];
+	strcpy_P(setupoutputbuffer, HTML_HEADER);
+	strcat_P(setupoutputbuffer, HTML_SSID);
+	request->send(200, "text / plain", setupoutputbuffer);
 }
 
 void WebInterface::handleSetupSSID(AsyncWebServerRequest *request)
 {
-	char outputbuffer[sizeof(HTML_HEADER)+sizeof(HTML_SSIDOK)+5];
+	char setupoutputbuffer[sizeof(HTML_HEADER)+sizeof(HTML_SSIDOK)+5];
 	String a = request->arg("ssid");
 	String b = request->arg("password");
 
@@ -64,28 +87,190 @@ void WebInterface::handleSetupSSID(AsyncWebServerRequest *request)
 
 	WebInterface::estore->wifiSave();
 
-	strcpy_P(outputbuffer, HTML_HEADER);
-	strcat_P(outputbuffer, HTML_SSIDOK);
-	request->send(200, "text / plain", outputbuffer );
+	strcpy_P(setupoutputbuffer, HTML_HEADER);
+	strcat_P(setupoutputbuffer, HTML_SSIDOK);
+	request->send(200, "text / plain", setupoutputbuffer);
 }
 
 void WebInterface::HandleRoot(AsyncWebServerRequest * request)
 {
+	if (outputbuffer == NULL || rebuildHTML == true)
+	{
+		char zahl[5];
+
+		if (outputbuffer != NULL)
+		{
+			free(outputbuffer);
+		}
+		// if you want to modify body part of html start here
+		// socket names and buttons are created dynamical
+
+		int memorycou = sizeof(HTML_HEADER);
+
+		typedef struct dipswitches_struct dipswitch;
+		dipswitch dp;
+
+		for (int i = 0; i < N_DIPSWITCHES; i++)
+		{
+			estore->dipSwitchLoad(i, &dp);
+			if (dp.name[0] != 0)
+			{
+				memorycou += (strlen(dp.name) + sizeof(HTML_DEVCONTROL_1) + sizeof(HTML_DEVCONTROL_2) + sizeof(HTML_DEVCONTROL_3) + sizeof(HTML_DEVCONTROL_4) + 20);
+			}
+		}
+
+		memorycou += sizeof(HTML_CONTROL);
+		outputbuffer = (char *)malloc(memorycou);
+		if (outputbuffer == NULL)
+		{
+			Serial.println("kein speicher");
+			while (true);
+		}
+
+		strcpy_P(outputbuffer, HTML_HEADER);
+		for (int i = 0; i < N_DIPSWITCHES; i++)
+		{
+			estore->dipSwitchLoad(i, &dp);
+			if (dp.name[0] != 0)
+			{
+				sprintf(zahl, "%d", i);
+				strcat(outputbuffer, "<p>");
+				strcat(outputbuffer, dp.name);
+				strcat_P(outputbuffer, HTML_DEVCONTROL_1);
+				strcat(outputbuffer, zahl);
+				strcat_P(outputbuffer, HTML_DEVCONTROL_2);
+				strcat(outputbuffer, zahl);
+				strcat_P(outputbuffer, HTML_DEVCONTROL_3);
+				strcat(outputbuffer, zahl);
+				strcat_P(outputbuffer, HTML_DEVCONTROL_4);
+			}
+		}
+
+		strcat_P(outputbuffer, HTML_CONTROL);
+		rebuildHTML = false;
+	}
+	request->send(200, "text/html", outputbuffer);
+}
+
+void WebInterface::SetDevices(RCSwitch *myswitch, WemosDevices *myWemos)
+{
+	_mySwitch = myswitch;
+	_myWemos = myWemos;
 }
 
 void WebInterface::HandleSpecificArg(AsyncWebServerRequest * request)
 {
+	String a = request->arg("house");
+	String b = request->arg("code");
+	String c = request->arg("onoff");
+	char aa[20];
+	char bb[20];
+
+	Serial.println("Nehme argumente: " + a + b + c);
+
+	if (a == "" || b == "" || c == "") { //Parameter not found
+
+
+	}
+	else {     //Parameter found
+		a.toCharArray(aa, sizeof(aa));
+		b.toCharArray(bb, sizeof(bb));
+		if (c == "0")
+		{
+			_mySwitch->switchOff(aa, bb);
+			Serial.println("OFF " + a + b);
+			delay(100);
+
+		}
+		else
+		{
+			_mySwitch->switchOn(aa, bb);
+			Serial.println("ON " + a + b);
+			delay(100);
+		}
+	}
+
+	HandleRoot(request);
+	
 }
 
 void WebInterface::HandleEsocket(AsyncWebServerRequest * request)
 {
+	typedef struct dipswitches_struct dipswitch;
+	dipswitch dp;
+
+	String a = request->arg("no");
+	String b = request->arg("sw");
+	int no = atoi(a.c_str());
+	if (no < N_DIPSWITCHES)
+	{
+		estore->dipSwitchLoad(no, &dp);
+		if (b == "0")
+		{
+			_mySwitch->switchOff(dp.housecode, dp.code);
+		}
+		else
+		{
+			_mySwitch->switchOn(dp.housecode, dp.code);
+		}
+		delay(100);
+		Serial.print("Wrote ");
+		Serial.print(dp.housecode);
+		Serial.print(dp.code);
+		Serial.println(b == "0" ? " off" : " on");
+	}
+
+	HandleRoot(request);
 }
 
 void WebInterface::HandleEDelete(AsyncWebServerRequest * request)
 {
+	String a = request->arg("no");
+	int no = atoi(a.c_str());
+	if (no < N_DIPSWITCHES)
+	{
+		typedef struct dipswitches_struct dipswitch;
+		dipswitch dp;
+		estore->dipSwitchLoad(no, &dp);
+		if (dp.name[0] != 0)
+		{
+			Serial.println(String(dp.name) + " remove");
+			//fauxmo.removeDevice(dp.name);
+			_myWemos->RemoveDevice(dp.name);
+		}
+		estore->dipSwitchDelete(no);
+		rebuildHTML = true;
+
+	}
+	HandleRoot(request);
 }
 
 void WebInterface::HandleEStore(AsyncWebServerRequest * request)
 {
+	typedef struct dipswitches_struct dipswitch;
+	dipswitch dp;
+	String a = request->arg("name");
+	String b = request->arg("house");
+	String c = request->arg("code");
+	String d = request->arg("roomname");
+	int no = estore->dipSwitchFindFree();
+	Serial.println("Free slot to store " + String(no));
+	if (no >= 0)
+	{
+		memcpy(dp.name, (char *)a.c_str(), sizeof(dp.name));
+		memcpy(dp.housecode, (char *)b.c_str(), sizeof(dp.housecode));
+		memcpy(dp.code, (char *)c.c_str(), sizeof(dp.code));
+		memcpy(dp.roomname, (char *)d.c_str(), sizeof(dp.roomname));
+
+		dp.name[sizeof(dp.name) - 1] = 0;
+		dp.housecode[sizeof(dp.housecode) - 1] = 0;
+		dp.code[sizeof(dp.code) - 1] = 0;
+		estore->dipSwitchSave(no, &dp);
+		Serial.println(String(dp.name) + " adding");
+		_myWemos->AddDevice(dp.name, NULL, NULL, NULL);
+		rebuildHTML = true;
+	}
+
+	HandleRoot(request);
 }
 

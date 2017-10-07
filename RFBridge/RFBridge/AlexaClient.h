@@ -34,13 +34,14 @@ public:
 	~AlexaClient();
 	void SendUdpResponse(AsyncUDPPacket *udp);
 	void Handle();
-	
+	void Stop();
+	char *_name;
+
 
 private:
 	int _id;
 	int _port;
 	char *_uuid;
-	char *_name;
 	char *_ip;
 	HttpServer *_server;
 	callbacktype _methodOn;

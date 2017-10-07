@@ -48,17 +48,10 @@ void HttpServer::onTimeout(void *obj, AsyncClient* c, uint32_t time) {
 }
 
 void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
-	//os_printf("rx:%u\n", len);
-	//size_t i;
-	//for (i = 0; i<len; i++) {
-	//	while (((U0S >> USTXC) & 0x7F) != 0);
-	//	U0F = ((uint8_t*)buf)[i];
-	//}
 	HttpServer *tthis = (HttpServer *)obj;
 	if (tthis->_objId == 0x0c1a0)
 	{
 		char *inputBuffer = (char *)buf;
-		Serial.println("onData1");
 
 		if (HelperClass::sstrstr(inputBuffer, "setup.xml", len) != NULL)
 		{
@@ -75,14 +68,10 @@ void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
 			Serial.println("off detected");
 			tthis->_requestedPage = SWITCHOFF;
 		}
-		Serial.println("onData2");
-
-		Serial.println("onData3");
 
 		switch (tthis->_requestedPage)
 		{
 		case SETUP:
-			Serial.println("onData4");
 
 			tthis->SendTcpResponse(c);
 			break;
@@ -107,19 +96,12 @@ void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
 			break;
 		}
 
-		Serial.println("onData6");
 
 		tthis->_requestedPage = NONE;
-		Serial.println("onData7");
 
 		c->close();
-		Serial.println("onData8");
 
 		c->free();
-		Serial.println("onData9");
-
-		//delete c;
-		Serial.println("onData10");
 
 		tthis->_client = NULL;
 	}
@@ -165,8 +147,6 @@ void HttpServer::onClient(void *obj, AsyncClient* c) {
 	tthis->_client->onData(HttpServer::onData,tthis);
 	//client->onPoll(onPoll);
 
-	Serial.println("onClient6");
-
 }
 
 void HttpServer::Start(int port, char *devicename, char *uuid, callbacktype methodOn, callbacktype methodOff, void *arg)
@@ -180,6 +160,18 @@ void HttpServer::Start(int port, char *devicename, char *uuid, callbacktype meth
 	this->_methodOn = methodOn;
 	this->_methodOff = methodOff;
 	this->_arg = arg;
+}
+
+void HttpServer::Stop()
+{
+	this->_server->end();
+	delete this->_server;
+
+}
+
+HttpServer::~HttpServer()
+{
+
 }
 
 void HttpServer::Handle()

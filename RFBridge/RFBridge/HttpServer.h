@@ -50,7 +50,7 @@ public:
 	HttpServer();
 	~HttpServer();
 	void Start(int port, char *devicename, char *uuid, callbacktype methodOn, callbacktype methodOff, void *arg);
-
+	void Stop();
 	void Handle();
 
 private:

@@ -14,20 +14,44 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
 
-const char * ssid = "Datenpuste";
-const char * password = "lidenise";
-
 WemosDevices wemos;
-EStore estore2 = EStore();
+//EStore estore = EStore();
 RCSwitch mySwitch = RCSwitch();
 AsyncWebServer server(80);
 
+void initDevices()
+{
+	typedef struct dipswitches_struct dipswitch;
+	dipswitch dp;
 
-void setup() {
+	for (int i = 0; i < N_DIPSWITCHES; i++)
+	{
+		WebInterface::estore->dipSwitchLoad(i, &dp);
+		if (dp.name[0] != 0)
+		{
+
+			wemos.AddDevice(dp.name, NULL, NULL, NULL);
+		}
+	}
+}
+
+
+void setup() 
+{
 	Serial.begin(115200);
-	estore2.setupEeprom();
-	WebInterface::estore = &estore2;
-	if (estore2.ssid[0] == 0)
+	if (digitalRead(D8) != 0)
+	{
+		Serial.println("D8 ist high");
+	}
+	else
+	{
+		Serial.println("D8 ist low");
+	}
+
+	WebInterface::estore = new EStore(); // &estore2;
+	WebInterface::estore->setupEeprom();
+	WebInterface::SetDevices(&mySwitch, &wemos);
+	if (WebInterface::estore->ssid[0] == 0)
 	{
 		Serial.println("No ssid defined");
 		/* You can remove the password parameter if you want the AP to be open. */
@@ -43,7 +67,7 @@ void setup() {
 	}
 
 	WiFi.mode(WIFI_STA);
-	WiFi.begin(ssid, password);
+	WiFi.begin(WebInterface::estore->ssid, WebInterface::estore->password);
 	if (WiFi.waitForConnectResult() != WL_CONNECTED) {
 		Serial.println("WiFi Failed");
 		while (1) {
@@ -57,8 +81,7 @@ void setup() {
 	Serial.println("mDNS responder started");
 
 	wemos.Start();
-	wemos.AddDevice("decke",NULL,NULL,NULL);
-	wemos.AddDevice("Herd",NULL,NULL,NULL);
+	initDevices();
 
 	server.on("/", HTTP_GET, WebInterface::HandleRoot);
 

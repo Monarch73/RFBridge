@@ -13,6 +13,9 @@
 
 #include <ESPAsyncWebServer.h>
 #include "EStore.h"
+#include "RCSwitch.h"
+#include "WemosDevices.h"
+
 class WebInterface
 {
 public:
@@ -24,8 +27,13 @@ public:
 	static void HandleEsocket(AsyncWebServerRequest *request);
 	static void HandleEDelete(AsyncWebServerRequest *request);
 	static void HandleEStore(AsyncWebServerRequest *request);
+	static void SetDevices(RCSwitch *myswitch, WemosDevices *myWemos);
 private:
-	
+	static char *outputbuffer;
+	static bool rebuildHTML;
+	static RCSwitch *_mySwitch;
+	static WemosDevices *_myWemos;
+
 };
 
 

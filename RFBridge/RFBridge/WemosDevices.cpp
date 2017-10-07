@@ -76,6 +76,25 @@ void WemosDevices::AddDevice(char *name, callbacktype methodOn,callbacktype meth
 	}
 }
 
+void WemosDevices::RemoveDevice(char *name)
+{
+	for (int i = 0; i < N_SERVER; i++)
+	{
+		if (this->_servers[i] != NULL)
+		{
+			if (this->_servers[i]->_name != NULL && strlen(this->_servers[i]->_name) == strlen(name) && strcmp(this->_servers[i]->_name, name) == 0)
+			{
+				this->_servers[i]->Stop();
+				delete this->_servers[i];
+
+				this->_servers[i] = NULL;
+
+			}
+		}
+	}
+}
+
+
 void WemosDevices::Handle()
 {
 	for (int i = 0; i < N_SERVER; i++)

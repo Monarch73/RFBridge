@@ -27,6 +27,12 @@ AlexaClient::AlexaClient(char *name,int id, callbacktype methodOn, callbacktype 
 	this->_server->Start(this->_port, this->_name, this->_uuid,this->_methodOn,this->_methodOff,this->_arg);
 }
 
+void AlexaClient::Stop()
+{
+	this->_server->Stop();
+	delete this->_server;
+}
+
 void AlexaClient::SendUdpResponse(AsyncUDPPacket *udp)
 {
 	uint8_t response[strlen(UDP_TEMPLATE) + 40];

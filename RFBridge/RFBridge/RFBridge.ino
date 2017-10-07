@@ -14,7 +14,7 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
 
-WemosDevices wemos;
+WemosDevices wemos=WemosDevices();
 //EStore estore = EStore();
 RCSwitch mySwitch = RCSwitch();
 AsyncWebServer server(80);
@@ -39,20 +39,24 @@ void initDevices()
 void setup() 
 {
 	Serial.begin(115200);
-	if (digitalRead(D8) != 0)
+	int zahl=analogRead(A0);
+	Serial.println(zahl);
+
+	WebInterface::estore = new EStore(); // &estore2;
+	if (zahl > 20)
 	{
-		Serial.println("D8 ist high");
+		WebInterface::estore->setupEeprom(true);
 	}
 	else
 	{
-		Serial.println("D8 ist low");
+		WebInterface::estore->setupEeprom();
 	}
 
-	WebInterface::estore = new EStore(); // &estore2;
-	WebInterface::estore->setupEeprom();
 	WebInterface::SetDevices(&mySwitch, &wemos);
 	if (WebInterface::estore->ssid[0] == 0)
 	{
+		pinMode(LED_BUILTIN, OUTPUT);
+		digitalWrite(LED_BUILTIN, 0);
 		Serial.println("No ssid defined");
 		/* You can remove the password parameter if you want the AP to be open. */
 		WiFi.softAP("EasyAlexa");
@@ -61,18 +65,32 @@ void setup()
 		Serial.print("AP IP address: ");
 		Serial.println(myIP);
 		server.on("/", HTTP_GET, WebInterface::HandleSetupRoot);
-		server.on("/setup", HTTP_GET, WebInterface::handleSetupSSID);
+		server.on("/setup", HTTP_POST, WebInterface::handleSetupSSID);
 		server.begin();
 		return;
 	}
 
 	WiFi.mode(WIFI_STA);
 	WiFi.begin(WebInterface::estore->ssid, WebInterface::estore->password);
-	if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-		Serial.println("WiFi Failed");
-		while (1) {
-			delay(1000);
-		}
+	zahl = 0;
+	if (WiFi.waitForConnectResult() != WL_CONNECTED) 
+	{
+		Serial.println("WiFi Failed.Entering setup mode.");
+		pinMode(LED_BUILTIN, OUTPUT);
+		digitalWrite(LED_BUILTIN, 0);
+		Serial.println("No ssid defined");
+		/* You can remove the password parameter if you want the AP to be open. */
+		WiFi.softAP("EasyAlexa");
+
+		IPAddress myIP = WiFi.softAPIP();
+		Serial.print("AP IP address: ");
+		Serial.println(myIP);
+		server.on("/", HTTP_GET, WebInterface::HandleSetupRoot);
+		server.on("/setup", HTTP_POST, WebInterface::handleSetupSSID);
+		server.begin();
+		return;
+
+		return;
 	}
 
 	if (!MDNS.begin("esp8266")) {             // Start the mDNS responder for esp8266.local

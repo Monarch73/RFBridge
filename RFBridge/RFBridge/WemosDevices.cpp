@@ -12,11 +12,6 @@
 
 void WemosDevices::Start()
 {
-	_servers = new AlexaClient*[N_SERVER];
-	for (int i = 0; i < N_SERVER; i++)
-	{
-		_servers[i] = NULL;
-	}
 
 	if (_udp.listenMulticast(IPAddress(239, 255, 255, 250), 1900))
 	{
@@ -108,6 +103,11 @@ void WemosDevices::Handle()
 
 WemosDevices::WemosDevices()
 {
+	_servers = new AlexaClient*[N_SERVER];
+	for (int i = 0; i < N_SERVER; i++)
+	{
+		_servers[i] = NULL;
+	}
 }
 
 WemosDevices::~WemosDevices()

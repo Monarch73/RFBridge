@@ -28,6 +28,9 @@ public:
 	static void HandleEDelete(AsyncWebServerRequest *request);
 	static void HandleEStore(AsyncWebServerRequest *request);
 	static void SetDevices(RCSwitch *myswitch, WemosDevices *myWemos);
+	static void TurnOn(void *arg);
+	static void TurnOff(void *arg);
+
 private:
 	static char *outputbuffer;
 	static bool rebuildHTML;

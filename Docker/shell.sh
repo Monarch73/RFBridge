@@ -9,7 +9,7 @@ git clone https://github.com/esp8266/Arduino.git
 git clone https://github.com/sui77/rc-switch.git
 git clone https://github.com/me-no-dev/ESPAsyncUDP.git
 git clone https://github.com/me-no-dev/ESPAsyncWebServer.git
-git clone https://github.com/me-no-dev/ESPAsyncTCP.git
+git clone https://github.com/Monarch73/ESPAsyncTCP.git
 git clone https://github.com/Monarch73/RFBridge.git
 git clone https://github.com/plerup/makeEspArduino.git
 

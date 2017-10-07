@@ -159,6 +159,34 @@ void WebInterface::SetDevices(RCSwitch *myswitch, WemosDevices *myWemos)
 	_myWemos = myWemos;
 }
 
+void WebInterface::TurnOn(void * arg)
+{
+	typedef struct dipswitches_struct dipswitch;
+	dipswitch dp;
+
+	int *no = (int*)arg;
+	Serial.print(*no);
+	Serial.println(" turn on");
+	estore->dipSwitchLoad(*no, &dp);
+	_mySwitch->switchOff(dp.housecode, dp.code);
+
+}
+
+void WebInterface::TurnOff(void * arg)
+{
+	typedef struct dipswitches_struct dipswitch;
+	dipswitch dp;
+
+	int *no = (int*)arg;
+	Serial.print(*no);
+	Serial.println(" turn off");
+
+	estore->dipSwitchLoad(*no, &dp);
+	_mySwitch->switchOff(dp.housecode, dp.code);
+
+
+}
+
 void WebInterface::HandleSpecificArg(AsyncWebServerRequest * request)
 {
 	String a = request->arg("house");
@@ -269,7 +297,7 @@ void WebInterface::HandleEStore(AsyncWebServerRequest * request)
 		dp.code[sizeof(dp.code) - 1] = 0;
 		estore->dipSwitchSave(no, &dp);
 		Serial.println(String(dp.name) + " adding");
-		_myWemos->AddDevice(dp.name, NULL, NULL, NULL);
+		_myWemos->AddDevice(dp.name, WebInterface::TurnOn, WebInterface::TurnOff, new int(no));
 		rebuildHTML = true;
 	}
 

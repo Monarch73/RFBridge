@@ -30,7 +30,7 @@ void initDevices()
 		if (dp.name[0] != 0)
 		{
 
-			wemos.AddDevice(dp.name, NULL, NULL, NULL);
+			wemos.AddDevice(dp.name, WebInterface::TurnOn, WebInterface::TurnOff, new int(i));
 		}
 	}
 }
@@ -88,7 +88,6 @@ void setup()
 		server.on("/", HTTP_GET, WebInterface::HandleSetupRoot);
 		server.on("/setup", HTTP_POST, WebInterface::handleSetupSSID);
 		server.begin();
-		return;
 
 		return;
 	}
@@ -99,6 +98,7 @@ void setup()
 	Serial.println("mDNS responder started");
 
 	wemos.Start();
+	mySwitch.enableTransmit(2);
 	initDevices();
 
 	server.on("/", HTTP_GET, WebInterface::HandleRoot);

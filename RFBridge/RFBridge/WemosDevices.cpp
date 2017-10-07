@@ -79,7 +79,9 @@ void WemosDevices::RemoveDevice(char *name)
 		{
 			if (this->_servers[i]->_name != NULL && strlen(this->_servers[i]->_name) == strlen(name) && strcmp(this->_servers[i]->_name, name) == 0)
 			{
+				Serial.println("found it");
 				this->_servers[i]->Stop();
+				Serial.println("stopped");
 				delete this->_servers[i];
 
 				this->_servers[i] = NULL;

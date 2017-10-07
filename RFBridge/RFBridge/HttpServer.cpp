@@ -164,9 +164,11 @@ void HttpServer::Start(int port, char *devicename, char *uuid, callbacktype meth
 
 void HttpServer::Stop()
 {
+	Serial.println("httpserver ending");
 	this->_server->end();
+	Serial.println("httpserver ended");
 	delete this->_server;
-
+	Serial.println("httpserver deleted");
 }
 
 HttpServer::~HttpServer()

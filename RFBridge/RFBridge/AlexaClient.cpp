@@ -29,8 +29,11 @@ AlexaClient::AlexaClient(char *name,int id, callbacktype methodOn, callbacktype 
 
 void AlexaClient::Stop()
 {
+	
 	this->_server->Stop();
+	Serial.println("stopped");
 	delete this->_server;
+	Serial.println("deleted");
 }
 
 void AlexaClient::SendUdpResponse(AsyncUDPPacket *udp)

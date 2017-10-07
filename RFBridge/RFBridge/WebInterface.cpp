@@ -105,7 +105,7 @@ void WebInterface::HandleRoot(AsyncWebServerRequest * request)
 		// if you want to modify body part of html start here
 		// socket names and buttons are created dynamical
 
-		int memorycou = sizeof(HTML_HEADER);
+		int memorycou = sizeof(HTML_HEADER)+ sizeof(HTML_TITLE);
 
 		typedef struct dipswitches_struct dipswitch;
 		dipswitch dp;
@@ -128,6 +128,7 @@ void WebInterface::HandleRoot(AsyncWebServerRequest * request)
 		}
 
 		strcpy_P(outputbuffer, HTML_HEADER);
+		strcat_P(outputbuffer, HTML_TITLE);
 		for (int i = 0; i < N_DIPSWITCHES; i++)
 		{
 			estore->dipSwitchLoad(i, &dp);
@@ -232,6 +233,7 @@ void WebInterface::HandleEDelete(AsyncWebServerRequest * request)
 		typedef struct dipswitches_struct dipswitch;
 		dipswitch dp;
 		estore->dipSwitchLoad(no, &dp);
+		Serial.print("Loaded switch "); Serial.println(no);
 		if (dp.name[0] != 0)
 		{
 			Serial.println(String(dp.name) + " remove");

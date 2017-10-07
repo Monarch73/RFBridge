@@ -163,6 +163,7 @@ void setup()
 		request->send(404);
 	});
 
+	server.begin();
 }
 
 void loop() {

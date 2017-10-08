@@ -6,6 +6,9 @@ typedef struct dipswitches_struct
 	char roomname[20];
 	char housecode[6];
 	char code[6];
+	char tri1[16];
+	char tri2[16];
+
 };
 
 #endif

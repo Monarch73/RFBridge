@@ -46,8 +46,8 @@ char HTML_TITLE[] PROGMEM =
 "<h1>Steckdosensteuerung</h1>";
 
 char HTML_CONTROL[] PROGMEM =
-"<p><form method=\"POST\" action=\"/send\">Housecode:<input type=\"TEXT\" name=\"house\" /> Code:<input type=\"TEXT\" name=\"code\" /> Ein/aus:<input type=\"TEXT\" name=\"onoff\" /><input type=\"submit\" name=\"send\" value=\"schalten\" /></form></p>"
-"<p><form method=\"POST\" action=\"/estore\">Name:<input type=\"TEXT\" name=\"name\" /> Housecode:<input type=\"TEXT\" name=\"house\" /> Code:<input type=\"TEXT\" name=\"code\" /> Room:<input type=\"TEXT\" name=\"roomname\" /><input type=\"submit\" name=\"speichern\" value=\"speichern\" /></form></p>"
+"<p><form method=\"POST\" action=\"/send\">Housecode:<input type=\"TEXT\" name=\"house\" /> Code:<input type=\"TEXT\" name=\"code\" /> Ein/aus:<input type=\"TEXT\" name=\"onoff\" /> oder Tristate:<input type=\"text\" name=\"tri\"><input type=\"submit\" name=\"send\" value=\"schalten\" /></form></p>"
+"<p><form method=\"POST\" action=\"/estore\">Name:<input type=\"TEXT\" name=\"name\" /> Housecode:<input type=\"TEXT\" name=\"house\" /> Code:<input type=\"TEXT\" name=\"code\" /> Room:<input type=\"TEXT\" name=\"roomname\" /> TristateON:<input type=\"text\" name=\"tri1\"> TristateOff:<input type=\"text\" name=\"tri2\"><input type=\"submit\" name=\"speichern\" value=\"speichern\" /></form></p>"
 "</center></body>";
 
 char HTML_DEVCONTROL_1[] PROGMEM =
@@ -168,7 +168,15 @@ void WebInterface::TurnOn(void * arg)
 	Serial.print(*no);
 	Serial.println(" turn on");
 	estore->dipSwitchLoad(*no, &dp);
-	_mySwitch->switchOff(dp.housecode, dp.code);
+	if (strlen(dp.tri1) > 2)
+	{
+		_mySwitch->sendTriState(dp.tri1);
+	}
+	else
+	{
+
+		_mySwitch->switchOff(dp.housecode, dp.code);
+	}
 
 }
 
@@ -182,9 +190,14 @@ void WebInterface::TurnOff(void * arg)
 	Serial.println(" turn off");
 
 	estore->dipSwitchLoad(*no, &dp);
-	_mySwitch->switchOff(dp.housecode, dp.code);
-
-
+	if (strlen(dp.tri2) > 2)
+	{
+		_mySwitch->sendTriState(dp.tri2);
+	}
+	else
+	{
+		_mySwitch->switchOff(dp.housecode, dp.code);
+	}
 }
 
 void WebInterface::HandleSpecificArg(AsyncWebServerRequest * request)
@@ -192,14 +205,18 @@ void WebInterface::HandleSpecificArg(AsyncWebServerRequest * request)
 	String a = request->arg("house");
 	String b = request->arg("code");
 	String c = request->arg("onoff");
+	String d = request->arg("tri");
 	char aa[20];
 	char bb[20];
 
 	Serial.println("Nehme argumente: " + a + b + c);
 
-	if (a == "" || b == "" || c == "") { //Parameter not found
-
-
+	if (a == "" || b == "" || c == "") 
+	{ //Parameter not found
+		if (d.length() > 2)
+		{
+			_mySwitch->sendTriState(d.c_str());
+		}
 	}
 	else {     //Parameter found
 		a.toCharArray(aa, sizeof(aa));
@@ -236,16 +253,27 @@ void WebInterface::HandleEsocket(AsyncWebServerRequest * request)
 		estore->dipSwitchLoad(no, &dp);
 		if (b == "0")
 		{
-			_mySwitch->switchOff(dp.housecode, dp.code);
+			if (strlen(dp.tri2) > 2)
+			{
+				_mySwitch->sendTriState(dp.tri2);
+			}
+			else
+			{
+				_mySwitch->switchOff(dp.housecode, dp.code);
+			}
 		}
 		else
 		{
-			_mySwitch->switchOn(dp.housecode, dp.code);
+			if (strlen(dp.tri1) > 2)
+			{
+				_mySwitch->sendTriState(dp.tri1);
+			}
+			else
+			{
+				_mySwitch->switchOn(dp.housecode, dp.code);
+			}
 		}
 		delay(100);
-		Serial.print("Wrote ");
-		Serial.print(dp.housecode);
-		Serial.print(dp.code);
 		Serial.println(b == "0" ? " off" : " on");
 	}
 
@@ -282,6 +310,9 @@ void WebInterface::HandleEStore(AsyncWebServerRequest * request)
 	String a = request->arg("name");
 	String b = request->arg("house");
 	String c = request->arg("code");
+	String c2 = request->arg("tri1");
+	String c3 = request->arg("tri2");
+
 	String d = request->arg("roomname");
 	int no = estore->dipSwitchFindFree();
 	Serial.println("Free slot to store " + String(no));
@@ -291,10 +322,13 @@ void WebInterface::HandleEStore(AsyncWebServerRequest * request)
 		memcpy(dp.housecode, (char *)b.c_str(), sizeof(dp.housecode));
 		memcpy(dp.code, (char *)c.c_str(), sizeof(dp.code));
 		memcpy(dp.roomname, (char *)d.c_str(), sizeof(dp.roomname));
-
+		memcpy(dp.tri1, (char*)c2.c_str(), sizeof(dp.tri1));
+		memcpy(dp.tri2, (char *)c3.c_str(), sizeof(dp.tri2));
 		dp.name[sizeof(dp.name) - 1] = 0;
 		dp.housecode[sizeof(dp.housecode) - 1] = 0;
 		dp.code[sizeof(dp.code) - 1] = 0;
+		dp.tri1[sizeof(dp.tri1) - 1] = 0;
+		dp.tri2[sizeof(dp.tri2) - 1] = 0;
 		estore->dipSwitchSave(no, &dp);
 		Serial.println(String(dp.name) + " adding");
 		_myWemos->AddDevice(dp.name, WebInterface::TurnOn, WebInterface::TurnOff, new int(no));

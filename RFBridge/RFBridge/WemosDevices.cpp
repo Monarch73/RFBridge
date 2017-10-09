@@ -35,7 +35,7 @@ void WemosDevices::Start()
 //			Serial.write(packet.data(), packet.length());
 			Serial.println();
 			//reply to the client
-			packet.printf("Got %u bytes of data", packet.length());
+			//packet.printf("Got %u bytes of data", packet.length());
 			if (strstr((char *)data, UDP_SEARCH_PATTERN) != NULL)
 			{
 				if (strstr((char *)data, UDP_DEVICE_PATTERN) != NULL)

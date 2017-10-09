@@ -17,7 +17,7 @@
 WemosDevices wemos=WemosDevices();
 //EStore estore = EStore();
 RCSwitch mySwitch = RCSwitch();
-AsyncWebServer server(80);
+AsyncWebServer *server;
 
 void initDevices()
 {
@@ -64,9 +64,10 @@ void setup()
 		IPAddress myIP = WiFi.softAPIP();
 		Serial.print("AP IP address: ");
 		Serial.println(myIP);
-		server.on("/", HTTP_GET, WebInterface::HandleSetupRoot);
-		server.on("/setup", HTTP_POST, WebInterface::handleSetupSSID);
-		server.begin();
+		server = new AsyncWebServer(80);
+		server->on("/", HTTP_GET, WebInterface::HandleSetupRoot);
+		server->on("/setup", HTTP_POST, WebInterface::handleSetupSSID);
+		server->begin();
 		return;
 	}
 
@@ -85,9 +86,10 @@ void setup()
 		IPAddress myIP = WiFi.softAPIP();
 		Serial.print("AP IP address: ");
 		Serial.println(myIP);
-		server.on("/", HTTP_GET, WebInterface::HandleSetupRoot);
-		server.on("/setup", HTTP_POST, WebInterface::handleSetupSSID);
-		server.begin();
+		server = new AsyncWebServer(80);
+		server->on("/", HTTP_GET, WebInterface::HandleSetupRoot);
+		server->on("/setup", HTTP_POST, WebInterface::handleSetupSSID);
+		server->begin();
 
 		return;
 	}
@@ -95,27 +97,27 @@ void setup()
 	if (!MDNS.begin("esp8266")) {             // Start the mDNS responder for esp8266.local
 		Serial.println("Error setting up MDNS responder!");
 	}
-	Serial.println("mDNS responder started");
+	Serial.println("V1.0");
 
 	wemos.Start();
 	mySwitch.enableTransmit(2);
 	initDevices();
+	server = new AsyncWebServer(80);
+	server->on("/", HTTP_GET, WebInterface::HandleRoot);
 
-	server.on("/", HTTP_GET, WebInterface::HandleRoot);
 
 
-
-	server.on("/heap", HTTP_GET, [](AsyncWebServerRequest * request) {
+	server->on("/heap", HTTP_GET, [](AsyncWebServerRequest * request) {
 		request->send(200, "text/plain", String(ESP.getFreeHeap()));
 	});
 
-	server.on("/send", HTTP_POST, WebInterface::HandleSpecificArg);
-	server.on("/esocket", HTTP_GET, WebInterface::HandleEsocket);
-	server.on("/edelete", HTTP_GET, WebInterface::HandleEDelete);
-	server.on("/estore", HTTP_POST, WebInterface::HandleEStore);
+	server->on("/send", HTTP_POST, WebInterface::HandleSpecificArg);
+	server->on("/esocket", HTTP_GET, WebInterface::HandleEsocket);
+	server->on("/edelete", HTTP_GET, WebInterface::HandleEDelete);
+	server->on("/estore", HTTP_POST, WebInterface::HandleEStore);
 
 
-	server.onNotFound([](AsyncWebServerRequest * request) {
+	server->onNotFound([](AsyncWebServerRequest * request) {
 		Serial.printf("NOT_FOUND: ");
 		if (request->method() == HTTP_GET)
 			Serial.printf("GET");
@@ -163,7 +165,7 @@ void setup()
 		request->send(404);
 	});
 
-	server.begin();
+	server->begin();
 }
 
 void loop() {

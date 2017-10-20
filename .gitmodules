@@ -1,12 +1,15 @@
-[submodule "ESPAsyncWebServer"]
-	path = ESPAsyncWebServer
-	url = https://github.com/me-no-dev/ESPAsyncWebServer.git
-[submodule "ESPAsyncUDP"]
-	path = ESPAsyncUDP
-	url = https://github.com/me-no-dev/ESPAsyncUDP.git
-[submodule "rc-switch"]
-	path = rc-switch
+[submodule "libraries/rc-switch"]
+	path = libraries/rc-switch
 	url = https://github.com/sui77/rc-switch.git
-[submodule "ESPAsyncTCP"]
-	path = ESPAsyncTCP
+[submodule "libraries/ESPAsyncUDP"]
+	path = libraries/ESPAsyncUDP
+	url = https://github.com/me-no-dev/ESPAsyncUDP.git
+[submodule "libraries/ESPAsyncWebServer"]
+	path = libraries/ESPAsyncWebServer
+	url = https://github.com/me-no-dev/ESPAsyncWebServer.git
+[submodule "libraries/ESPAsyncTCP"]
+	path = libraries/ESPAsyncTCP
 	url = https://github.com/me-no-dev/ESPAsyncTCP.git
+[submodule "hardware/esp8266/esp8266"]
+	path = hardware/esp8266/esp8266
+	url = https://github.com/esp8266/Arduino.git

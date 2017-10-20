@@ -27,15 +27,18 @@ public:
 	static void HandleEsocket(AsyncWebServerRequest *request);
 	static void HandleEDelete(AsyncWebServerRequest *request);
 	static void HandleEStore(AsyncWebServerRequest *request);
-	static void SetDevices(RCSwitch *myswitch, WemosDevices *myWemos);
+	static void SetDevices(RCSwitch *myswitch, WemosDevices *myWemos, char *nameToDelete);
 	static void TurnOn(void *arg);
 	static void TurnOff(void *arg);
+	static void SetNameToDelete(char *nameToDelete);
+	volatile static char * GetNameToDelete();
 
 private:
 	static char *outputbuffer;
 	static bool rebuildHTML;
 	static RCSwitch *_mySwitch;
 	static WemosDevices *_myWemos;
+	volatile static char *_nameToDelete;
 
 };
 

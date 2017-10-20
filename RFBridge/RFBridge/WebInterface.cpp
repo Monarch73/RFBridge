@@ -67,6 +67,7 @@ char *WebInterface::outputbuffer=NULL;
 RCSwitch *WebInterface::_mySwitch;
 WemosDevices *WebInterface::_myWemos;
 
+volatile char *WebInterface::_nameToDelete;
 
 void WebInterface::HandleSetupRoot(AsyncWebServerRequest *request)
 {
@@ -153,10 +154,11 @@ void WebInterface::HandleRoot(AsyncWebServerRequest * request)
 	request->send(200, "text/html", outputbuffer);
 }
 
-void WebInterface::SetDevices(RCSwitch *myswitch, WemosDevices *myWemos)
+void WebInterface::SetDevices(RCSwitch *myswitch, WemosDevices *myWemos, char *nameToDelete)
 {
 	_mySwitch = myswitch;
 	_myWemos = myWemos;
+	_nameToDelete = nameToDelete;
 }
 
 void WebInterface::TurnOn(void * arg)
@@ -198,6 +200,16 @@ void WebInterface::TurnOff(void * arg)
 	{
 		_mySwitch->switchOff(dp.housecode, dp.code);
 	}
+}
+
+void WebInterface::SetNameToDelete(char * nameToDelete)
+{
+	WebInterface::_nameToDelete = nameToDelete;
+}
+
+volatile char * WebInterface::GetNameToDelete()
+{
+	return WebInterface::_nameToDelete;
 }
 
 void WebInterface::HandleSpecificArg(AsyncWebServerRequest * request)
@@ -294,7 +306,12 @@ void WebInterface::HandleEDelete(AsyncWebServerRequest * request)
 		{
 			Serial.println(String(dp.name) + " remove");
 			//fauxmo.removeDevice(dp.name);
-			_myWemos->RemoveDevice(dp.name);
+			//_myWemos->RemoveDevice(dp.name);
+			if (_nameToDelete == NULL)
+			{
+				_nameToDelete = dp.name;
+			}
+				
 		}
 		estore->dipSwitchDelete(no);
 		rebuildHTML = true;

@@ -29,7 +29,7 @@ public:
 	void Handle();
 	void AddDevice(char *name,callbacktype methodOn, callbacktype methodOff, void *arg=0);
 
-	void RemoveDevice(char * name);
+	void RemoveDevice(volatile char * name);
 
 private:
 

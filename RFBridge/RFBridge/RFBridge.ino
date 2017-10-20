@@ -52,7 +52,7 @@ void setup()
 		WebInterface::estore->setupEeprom();
 	}
 
-	WebInterface::SetDevices(&mySwitch, &wemos);
+	WebInterface::SetDevices(&mySwitch, &wemos,NULL);
 	if (WebInterface::estore->ssid[0] == 0)
 	{
 		pinMode(LED_BUILTIN, OUTPUT);
@@ -169,7 +169,14 @@ void setup()
 }
 
 void loop() {
+	volatile char *nameToDelete;
 	ArduinoOTA.handle();
 	// put your main code here, to run repeatedly:
 	wemos.Handle();
+
+	if ((nameToDelete = WebInterface::GetNameToDelete())!=NULL)
+	{
+		wemos.RemoveDevice(nameToDelete);
+		nameToDelete = NULL;
+	}
 }

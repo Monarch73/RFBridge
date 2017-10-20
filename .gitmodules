@@ -1,0 +1,12 @@
+[submodule "ESPAsyncWebServer"]
+	path = ESPAsyncWebServer
+	url = https://github.com/me-no-dev/ESPAsyncWebServer.git
+[submodule "ESPAsyncUDP"]
+	path = ESPAsyncUDP
+	url = https://github.com/me-no-dev/ESPAsyncUDP.git
+[submodule "rc-switch"]
+	path = rc-switch
+	url = https://github.com/sui77/rc-switch.git
+[submodule "ESPAsyncTCP"]
+	path = ESPAsyncTCP
+	url = https://github.com/me-no-dev/ESPAsyncTCP.git

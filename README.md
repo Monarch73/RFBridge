@@ -5,6 +5,11 @@ Its basically a more stable reimplementation, enhanced version of fauxmoESP by h
 
 Status of this dokumentation is incomplete. Parts that still need work are marked by @@todo
 
+# Known Problems
+
+Currently (as of 10/22/2017) HEAD Builds are not working. To successfully compile the Project esp8266/arduino needs to check out commit 2c2d6a3bad29249c6954c2c61a83a3e4ff847da6
+and ESPAsyncTCP to 9b0cc37cd7bdf4b7d17a363141d2e988aa46652c
+
 # Flashing the release.
 
 The release file is designed to run on a D1-Mini-R2 compatible esp8266 board. 
@@ -29,6 +34,8 @@ Browse to the ip of your device.
 
 
 # building sources in docker.
+
+Head builds are currently broken! (see Known Problems)
 
 Requirements for Windows users.
 

@@ -18,7 +18,7 @@ and flash the latest released rfbridge.bin.
 
 # Wiring
 
-Connect a [RF-Transmitter Module](https://www.amazon.com/dp/B01AA7JI1E) to your esp8266 device.
+Connect a [RF-Transmitter Module](https://www.amazon.com/gp/product/B017AYH5G0) to your esp8266 device.
 The data-connector should be connected to D4 (GPIO2). If you are using a different board, you need to look up GPIO2 in the pinout chart of your board and recompile the project for that board.
 
 # Usage

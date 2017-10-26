@@ -7,13 +7,15 @@ Status of this dokumentation is incomplete. Parts that still need work are marke
 
 # Known Problems
 
-Currently (as of 10/22/2017) HEAD Builds are not working. To successfully compile the Project esp8266/arduino needs to check out commit 2c2d6a3bad29249c6954c2c61a83a3e4ff847da6
+ - Currently (as of 10/22/2017) HEAD Builds are not working. To successfully compile the Project esp8266/arduino needs to check out commit 2c2d6a3bad29249c6954c2c61a83a3e4ff847da6
 and ESPAsyncTCP to 9b0cc37cd7bdf4b7d17a363141d2e988aa46652c
+
+ - If the ESP8266 keeps loosing configuration data and constantly booting into "EasyAlexa"-Mode, you are probably using the wrong flashing tool. For windows users I recommend using the github flasher seen below..
 
 # Flashing the release.
 
 The release file is designed to run on a D1-Mini-R2 compatible esp8266 board. 
-Just download the esp8266 flash tool from [expressif](http://espressif.com/en/support/download/other-tools)
+Just download the esp8266 flash tool from [github](https://github.com/nodemcu/nodemcu-flasher)
 and flash the latest released rfbridge.bin. 
 
 # Wiring

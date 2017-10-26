@@ -124,8 +124,8 @@ void WebInterface::HandleRoot(AsyncWebServerRequest * request)
 		outputbuffer = (char *)malloc(memorycou);
 		if (outputbuffer == NULL)
 		{
-			Serial.println("kein speicher");
-			while (true);
+			Serial.println("out of memory");
+			while (true); //Let the wdt reset the device
 		}
 
 		strcpy_P(outputbuffer, HTML_HEADER);
@@ -167,8 +167,6 @@ void WebInterface::TurnOn(void * arg)
 	dipswitch dp;
 
 	int *no = (int*)arg;
-	Serial.print(*no);
-	Serial.println(" turn on");
 	estore->dipSwitchLoad(*no, &dp);
 	if (strlen(dp.tri1) > 2)
 	{
@@ -188,8 +186,6 @@ void WebInterface::TurnOff(void * arg)
 	dipswitch dp;
 
 	int *no = (int*)arg;
-	Serial.print(*no);
-	Serial.println(" turn off");
 
 	estore->dipSwitchLoad(*no, &dp);
 	if (strlen(dp.tri2) > 2)
@@ -221,8 +217,6 @@ void WebInterface::HandleSpecificArg(AsyncWebServerRequest * request)
 	char aa[20];
 	char bb[20];
 
-	Serial.println("Nehme argumente: " + a + b + c);
-
 	if (a == "" || b == "" || c == "") 
 	{ //Parameter not found
 		if (d.length() > 2)
@@ -236,14 +230,12 @@ void WebInterface::HandleSpecificArg(AsyncWebServerRequest * request)
 		if (c == "0")
 		{
 			_mySwitch->switchOff(aa, bb);
-			Serial.println("OFF " + a + b);
 			delay(100);
 
 		}
 		else
 		{
 			_mySwitch->switchOn(aa, bb);
-			Serial.println("ON " + a + b);
 			delay(100);
 		}
 	}
@@ -286,7 +278,6 @@ void WebInterface::HandleEsocket(AsyncWebServerRequest * request)
 			}
 		}
 		delay(100);
-		Serial.println(b == "0" ? " off" : " on");
 	}
 
 	HandleRoot(request);
@@ -301,12 +292,8 @@ void WebInterface::HandleEDelete(AsyncWebServerRequest * request)
 		typedef struct dipswitches_struct dipswitch;
 		dipswitch dp;
 		estore->dipSwitchLoad(no, &dp);
-		Serial.print("Loaded switch "); Serial.println(no);
 		if (dp.name[0] != 0)
 		{
-			Serial.println(String(dp.name) + " remove");
-			//fauxmo.removeDevice(dp.name);
-			//_myWemos->RemoveDevice(dp.name);
 			if (_nameToDelete == NULL)
 			{
 				_nameToDelete = dp.name;
@@ -332,7 +319,6 @@ void WebInterface::HandleEStore(AsyncWebServerRequest * request)
 
 	String d = request->arg("roomname");
 	int no = estore->dipSwitchFindFree();
-	Serial.println("Free slot to store " + String(no));
 	if (no >= 0)
 	{
 		memcpy(dp.name, (char *)a.c_str(), sizeof(dp.name));
@@ -347,7 +333,6 @@ void WebInterface::HandleEStore(AsyncWebServerRequest * request)
 		dp.tri1[sizeof(dp.tri1) - 1] = 0;
 		dp.tri2[sizeof(dp.tri2) - 1] = 0;
 		estore->dipSwitchSave(no, &dp);
-		Serial.println(String(dp.name) + " adding");
 		_myWemos->AddDevice(dp.name, WebInterface::TurnOn, WebInterface::TurnOff, new int(no));
 		rebuildHTML = true;
 	}

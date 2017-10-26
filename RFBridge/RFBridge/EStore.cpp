@@ -21,7 +21,6 @@ void EStore::setupEeprom(bool doit)
 	EEPROM.begin((sizeof(dipswitches_struct)*N_DIPSWITCHES) + 4 + N_CHAR_PASSWORD + N_CHAR_SSID);
 	if (doit || EEPROM.read(0) != 'N' || EEPROM.read(1) != 'H' || EEPROM.read(2) != N_DIPSWITCHES || EEPROM.read(3) != sizeof(dipswitches_struct))
 	{
-		Serial.println("Initialize EEPROM");
 		int pos = 0;
 		EEPROM.write(pos++, 'N');
 		EEPROM.write(pos++, 'H');
@@ -80,7 +79,7 @@ void EStore::dipSwitchDelete(int no)
 {
 	EEPROM.write(4 + (no * sizeof(dipswitches_struct)), 0);
 	EEPROM.commit();
-	Serial.println("switch deleted: " + String(no));
+	Serial.println("switch removed from EEPROM");
 }
 
 void EStore::wifiSave(void)
@@ -88,18 +87,15 @@ void EStore::wifiSave(void)
 	int eeprompos = 4 + (N_DIPSWITCHES * sizeof(dipswitches_struct));
 	uint8_t *bytepointer;
 	bytepointer = (uint8_t *)ssid;
-	Serial.print("storing ");
 
 	for (int cou = 0; cou < N_CHAR_SSID; cou++)
 	{
 		EEPROM.write(eeprompos++, *bytepointer);
-		Serial.print(String(*bytepointer) + " ");
 		bytepointer++;
 	}
 
 	eeprompos = 4 + (N_DIPSWITCHES * sizeof(dipswitches_struct)) + N_CHAR_SSID;
 	bytepointer = (uint8_t *)password;
-	Serial.print("storing password");
 
 	for (int cou = 0; cou < N_CHAR_PASSWORD; cou++)
 	{
@@ -108,7 +104,6 @@ void EStore::wifiSave(void)
 		bytepointer++;
 	}
 
-	Serial.println("done");
 	EEPROM.commit();
 
 }
@@ -118,15 +113,12 @@ void EStore::dipSwitchSave(int no, dipswitches_struct *dswitch)
 	int eeprompos = 4 + (no * sizeof(dipswitches_struct));
 	uint8_t *bytepointer;
 	bytepointer = (uint8_t *)dswitch;
-	Serial.print("storing ");
 
 	for (uint cou = 0; cou < sizeof(dipswitches_struct); cou++)
 	{
 		EEPROM.write(eeprompos++, *bytepointer);
-		Serial.print(String(*bytepointer) + " ");
 		bytepointer++;
 	}
-	Serial.println("done");
 	EEPROM.commit();
 }
 

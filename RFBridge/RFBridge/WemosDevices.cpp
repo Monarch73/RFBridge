@@ -24,23 +24,11 @@ void WemosDevices::Start()
 			Serial.print(", From: ");
 			Serial.print(packet.remoteIP());
 			Serial.print(":");
-			Serial.print(packet.remotePort());
-			Serial.print(", To: ");
-			Serial.print(packet.localIP());
-			Serial.print(":");
-			Serial.print(packet.localPort());
-			Serial.print(", Length: ");
-			Serial.print(packet.length());
-			Serial.print(", Data: ");
-//			Serial.write(packet.data(), packet.length());
-			Serial.println();
-			//reply to the client
-			//packet.printf("Got %u bytes of data", packet.length());
+			Serial.println(packet.remotePort());
 			if (strstr((char *)data, UDP_SEARCH_PATTERN) != NULL)
 			{
 				if (strstr((char *)data, UDP_DEVICE_PATTERN) != NULL)
 				{
-					Serial.println("Ich glaub, ich sollte antworten.");
 					for (int i = 0; i < N_SERVER; i++)
 					{
 						if (_servers[i] != NULL)
@@ -79,9 +67,7 @@ void WemosDevices::RemoveDevice(volatile char *name)
 		{
 			if (this->_servers[i]->_name != NULL && strlen(this->_servers[i]->_name) == strlen((char *)name) && strcmp(this->_servers[i]->_name,(char *) name) == 0)
 			{
-				Serial.println("found it");
 				this->_servers[i]->Stop();
-				Serial.println("stopped");
 				delete this->_servers[i];
 
 				this->_servers[i] = NULL;

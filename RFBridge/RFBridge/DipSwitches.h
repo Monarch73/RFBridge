@@ -1,6 +1,6 @@
 #ifndef _DIPSWITCHES_h
 #define _DIPSWITCHES_h
-typedef struct dipswitches_struct
+struct dipswitches_struct
 {
 	char name[20];
 	char roomname[20];

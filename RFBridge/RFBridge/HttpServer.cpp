@@ -22,12 +22,10 @@ void HttpServer::onPoll(void *obj, AsyncClient* c) {
 }
 
 void HttpServer::onError(void *obj, AsyncClient* c, int8_t error) {
-	HttpServer *tthis = (HttpServer *)obj;
 	os_printf("e:%d\n", error);
 }
 
 void HttpServer::onAck(void *obj, AsyncClient* c, size_t len, uint32_t time) {
-	HttpServer *tthis = (HttpServer *)obj;
 	os_printf("a:%u:%u\n", len, time);
 }
 
@@ -53,17 +51,17 @@ void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
 	{
 		char *inputBuffer = (char *)buf;
 
-		if (HelperClass::sstrstr(inputBuffer, "setup.xml", len) != NULL)
+		if (HelperClass::sstrstr(inputBuffer, (char*)"setup.xml", len) != NULL)
 		{
 			Serial.println("Setuppage detected");
 			tthis->_requestedPage = SETUP;
 		}
-		else if (HelperClass::sstrstr(inputBuffer, "<BinaryState>1</BinaryState>",len) != NULL)
+		else if (HelperClass::sstrstr(inputBuffer, (char*)"<BinaryState>1</BinaryState>",len) != NULL)
 		{
 			Serial.println("on detected");
 			tthis->_requestedPage = SWITCHON;
 		}
-		else if (HelperClass::sstrstr(inputBuffer, "<BinaryState>0</BinaryState>",len) != NULL)
+		else if (HelperClass::sstrstr(inputBuffer, (char*)"<BinaryState>0</BinaryState>",len) != NULL)
 		{
 			Serial.println("off detected");
 			tthis->_requestedPage = SWITCHOFF;

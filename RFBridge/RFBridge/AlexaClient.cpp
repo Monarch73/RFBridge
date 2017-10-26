@@ -8,7 +8,7 @@
 AlexaClient::AlexaClient(char *name,int id, callbacktype methodOn, callbacktype methodOff, void *arg)
 {
 	char uuid[15];
-	sprintf(uuid, "444556%06X%02X\0", ESP.getChipId(), id); // "DEV" + CHIPID + DEV_ID
+	sprintf(uuid, "444556%06X%02X", ESP.getChipId(), id); // "DEV" + CHIPID + DEV_ID
 
 	char buffer[16];
 	IPAddress ip = WiFi.localIP();

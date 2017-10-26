@@ -20,9 +20,7 @@ void EStore::setupEeprom(bool doit)
 {
 	EEPROM.begin((sizeof(dipswitches_struct)*N_DIPSWITCHES) + 4 + N_CHAR_PASSWORD + N_CHAR_SSID);
 	if (doit || EEPROM.read(0) != 'N' || EEPROM.read(1) != 'H' || EEPROM.read(2) != N_DIPSWITCHES || EEPROM.read(3) != sizeof(dipswitches_struct))
-
 	{
-		typedef struct dipswitches_struct empty;
 		Serial.println("Initialize EEPROM");
 		int pos = 0;
 		EEPROM.write(pos++, 'N');
@@ -31,7 +29,7 @@ void EStore::setupEeprom(bool doit)
 		EEPROM.write(pos++, sizeof(dipswitches_struct));
 		for (int cou = 0; cou < N_DIPSWITCHES; cou++)
 		{
-			for (int cou2 = 0; cou2 < sizeof(dipswitches_struct); cou2++)
+			for (uint cou2 = 0; cou2 < sizeof(dipswitches_struct); cou2++)
 			{
 				EEPROM.write(pos++, 0);
 			}
@@ -69,7 +67,7 @@ void EStore::dipSwitchLoad(int no, dipswitches_struct *dswitch)
 	uint8_t *bytepointer;
 	bytepointer = (uint8_t*)dswitch;
 	int eeprompos = 4 + (no * sizeof(dipswitches_struct));
-	for (int cou = 0; cou < sizeof(dipswitches_struct); cou++)
+	for (uint cou = 0; cou < sizeof(dipswitches_struct); cou++)
 	{
 		*bytepointer = EEPROM.read(eeprompos + cou);
 		bytepointer++;
@@ -122,7 +120,7 @@ void EStore::dipSwitchSave(int no, dipswitches_struct *dswitch)
 	bytepointer = (uint8_t *)dswitch;
 	Serial.print("storing ");
 
-	for (int cou = 0; cou < sizeof(dipswitches_struct); cou++)
+	for (uint cou = 0; cou < sizeof(dipswitches_struct); cou++)
 	{
 		EEPROM.write(eeprompos++, *bytepointer);
 		Serial.print(String(*bytepointer) + " ");

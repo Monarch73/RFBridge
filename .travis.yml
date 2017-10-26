@@ -1,0 +1,19 @@
+sudo: false
+language: bash
+os:
+  - linux
+
+script:
+  - mkdir -p $HOME/makeEspArduino
+  - cd $HOME/makeEspArduino
+  - git clone https://github.com/plerup/makeEspArduino.git
+  - cd $TRAVIS_BUILD_DIR/hardware/esp8266
+  - cd esp8266/tools
+  - python get.py
+  - cd $TRAVIS_BUILD_DIR
+  - make -f $HOME/makeEspArduino/makeEspArduino/makeEspArduino.mk ESP_ROOT=$TRAVIS_BUILD_DIR/hardware/esp8266/esp8266 BOARD=d1_mini SKETCH=$TRAVIS_BUILD_DIR/RFBridge/RFBridge/RFBridge.ino LIBS="$TRAVIS_BUILD_DIR/hardware/esp8266/esp8266/libraries/ESP8266WiFi/src/ $TRAVIS_BUILD_DIR/hardware/esp8266/esp8266/libraries/EEPROM/ $TRAVIS_BUILD_DIR/libraries/ESPAsyncTCP/src/ $TRAVIS_BUILD_DIR/libraries/ESPAsyncUDP/src/ $TRAVIS_BUILD_DIR/libraries/ESPAsyncWebServer/src/ $TRAVIS_BUILD_DIR/hardware/esp8266/esp8266/libraries/Hash/src/ $TRAVIS_BUILD_DIR/libraries/rc-switch/ $TRAVIS_BUILD_DIR/hardware/esp8266/esp8266/libraries/ESP8266mDNS/ $TRAVIS_BUILD_DIR/hardware/esp8266/esp8266/libraries/"
+
+notifications:
+  email:
+    on_success: change
+    on_failure: change

@@ -51,9 +51,20 @@ void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
 	{
 		char *inputBuffer = (char *)buf;
 
+#ifdef _DEBUG
+		for (uint cou = 0; cou < len; cou++)
+			Serial.print(*(inputBuffer+cou));
+		Serial.println("");
+#endif // DEBUG
+
+
 		if (HelperClass::sstrstr(inputBuffer, (char*)"setup.xml", len) != NULL)
 		{
 			tthis->_requestedPage = SETUP;
+		}
+		else if (HelperClass::sstrstr(inputBuffer, (char*)"u:GetBinaryState", len) != NULL)
+		{
+			tthis->_requestedPage = SWITCHSTATE;
 		}
 		else if (HelperClass::sstrstr(inputBuffer, (char*)"<BinaryState>1</BinaryState>",len) != NULL)
 		{
@@ -64,12 +75,18 @@ void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
 			tthis->_requestedPage = SWITCHOFF;
 		}
 
+#ifdef _DEBUG
+		Serial.print("Action:");
+		Serial.println(tthis->_requestedPage);
+#endif // _DEBUG
+
 		switch (tthis->_requestedPage)
 		{
-		case SETUP:
 
+		case SETUP:
 			tthis->SendTcpResponse(c);
 			break;
+
 		case SWITCHON:
 			tthis->SendTcpResponseOK(c);
 			if (tthis->_methodOn != NULL && tthis->_arg != NULL)
@@ -77,6 +94,7 @@ void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
 				tthis->_methodOn(tthis->_arg);
 			}
 			break;
+
 		case SWITCHOFF:
 			if (tthis->_methodOff != NULL && tthis->_arg != NULL)
 			{
@@ -84,8 +102,12 @@ void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
 			}
 
 			tthis->SendTcpResponseOK(c);
-
 			break;
+
+		case SWITCHSTATE:
+			tthis->SendTcpResponseOK(c);
+			break;
+
 		default:
 			break;
 		}

@@ -165,7 +165,6 @@ void WebInterface::TurnOn(void * arg)
 {
 	typedef struct dipswitches_struct dipswitch;
 	dipswitch dp;
-
 	int *no = (int*)arg;
 	estore->dipSwitchLoad(*no, &dp);
 	if (strlen(dp.tri1) > 2)
@@ -175,7 +174,7 @@ void WebInterface::TurnOn(void * arg)
 	else
 	{
 
-		_mySwitch->switchOff(dp.housecode, dp.code);
+		_mySwitch->switchOn(dp.housecode, dp.code);
 	}
 
 }

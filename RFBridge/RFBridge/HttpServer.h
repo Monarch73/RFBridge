@@ -35,13 +35,13 @@ const char HEADERS[] PROGMEM =
 "CONNECTION: close\r\n\r\n"
 "%s\r\n";
 
-
 enum REQUESTPAGE
 {
 	NONE = 0,
 	SETUP,
 	SWITCHON,
-	SWITCHOFF
+	SWITCHOFF,
+	SWITCHSTATE
 };
 
 class HttpServer

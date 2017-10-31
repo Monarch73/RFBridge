@@ -13,6 +13,7 @@
 #include "HttpServer.h"
 #include <ESP8266WiFi.h>
 #include <ArduinoOTA.h>
+#include <ESP8266HTTPClient.h>
 
 WemosDevices wemos=WemosDevices();
 //EStore estore = EStore();
@@ -29,7 +30,6 @@ void initDevices()
 		WebInterface::estore->dipSwitchLoad(i, &dp);
 		if (dp.name[0] != 0)
 		{
-
 			wemos.AddDevice(dp.name, WebInterface::TurnOn, WebInterface::TurnOff, new int(i));
 		}
 	}
@@ -39,11 +39,11 @@ void initDevices()
 void setup() 
 {
 	Serial.begin(115200);
-	int zahl=analogRead(A0);
+	int zahl = analogRead(A0);
 	Serial.println(zahl);
 
 	WebInterface::estore = new EStore(); // &estore2;
-	if (zahl > 20)
+	if (zahl > 350)
 	{
 		WebInterface::estore->setupEeprom(true);
 	}
@@ -52,7 +52,7 @@ void setup()
 		WebInterface::estore->setupEeprom();
 	}
 
-	WebInterface::SetDevices(&mySwitch, &wemos,NULL);
+	WebInterface::SetDevices(&mySwitch, &wemos,NULL,NULL);
 	if (WebInterface::estore->ssid[0] == 0)
 	{
 		pinMode(LED_BUILTIN, OUTPUT);
@@ -170,13 +170,35 @@ void setup()
 
 void loop() {
 	volatile char *nameToDelete;
+	volatile char *urlToCall2;
+
 	ArduinoOTA.handle();
 	// put your main code here, to run repeatedly:
 	wemos.Handle();
 
 	if ((nameToDelete = WebInterface::GetNameToDelete())!=NULL)
 	{
+		Serial.print("deleting ");
+		Serial.println((char *)nameToDelete);
+
 		wemos.RemoveDevice(nameToDelete);
-		nameToDelete = NULL;
+		WebInterface::SetNameToDelete(NULL);
+		free((void *)nameToDelete);
 	}
+
+	if ((urlToCall2 = WebInterface::GetUrlToCall()) != NULL)
+	{
+		Serial.print("Calling ");
+		Serial.print((char *)urlToCall2);
+		HTTPClient http;
+		bool ret = http.begin((char *)urlToCall2);
+		Serial.println(ret);
+		int ret2 = http.GET();
+		Serial.print(" ");
+		Serial.println(ret2);
+		http.end();
+		WebInterface::SetUrlToCall(NULL);
+		free((void *)urlToCall2);
+	}
+
 }

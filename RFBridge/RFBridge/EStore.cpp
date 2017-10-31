@@ -4,6 +4,15 @@
 #include <EEPROM.h>
 #include "EStore.h"
 
+extern "C" {
+#include "c_types.h"
+#include "ets_sys.h"
+#include "os_type.h"
+#include "osapi.h"
+#include "spi_flash.h"
+}
+
+
 typedef struct dipswitches_struct dipswitch;
 char EStore::ssid[N_CHAR_SSID];
 char EStore::password[N_CHAR_PASSWORD];
@@ -18,14 +27,20 @@ EStore::~EStore()
 
 void EStore::setupEeprom(bool doit)
 {
-	EEPROM.begin((sizeof(dipswitches_struct)*N_DIPSWITCHES) + 4 + N_CHAR_PASSWORD + N_CHAR_SSID);
-	if (doit || EEPROM.read(0) != 'N' || EEPROM.read(1) != 'H' || EEPROM.read(2) != N_DIPSWITCHES || EEPROM.read(3) != sizeof(dipswitches_struct))
+	size_t memorysize = (sizeof(dipswitches_struct)*N_DIPSWITCHES) + 4 + N_CHAR_PASSWORD + N_CHAR_SSID;
+	if (memorysize > SPI_FLASH_SEC_SIZE)
 	{
-		int pos = 0;
+		Serial.println("OUT OF MEMORY");
+		while (-1);
+	}
+	EEPROM.begin(memorysize);
+	if (doit || EEPROM.read(0) != 'N' || EEPROM.read(1) != 'H' || EEPROM.read(2) != N_DIPSWITCHES || EEPROM.read(3) != (uint8_t)sizeof(dipswitches_struct))
+	{
+		uint pos = 0;
 		EEPROM.write(pos++, 'N');
 		EEPROM.write(pos++, 'H');
 		EEPROM.write(pos++, N_DIPSWITCHES);
-		EEPROM.write(pos++, sizeof(dipswitches_struct));
+		EEPROM.write(pos++, (uint8_t)sizeof(dipswitches_struct));
 		for (int cou = 0; cou < N_DIPSWITCHES; cou++)
 		{
 			for (uint cou2 = 0; cou2 < sizeof(dipswitches_struct); cou2++)

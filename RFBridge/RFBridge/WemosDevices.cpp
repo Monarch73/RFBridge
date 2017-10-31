@@ -69,7 +69,6 @@ void WemosDevices::RemoveDevice(volatile char *name)
 			{
 				this->_servers[i]->Stop();
 				delete this->_servers[i];
-
 				this->_servers[i] = NULL;
 
 			}

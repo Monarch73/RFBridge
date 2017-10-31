@@ -4,7 +4,7 @@
 
 #include "WebInterface.h"
 
-char HTML_HEADER[] PROGMEM = "<!DOCTYPE html> <html> <head> <title>Steckdosensteuerung</title><meta charset=\"UTF-8\"><style>"
+char HTML_HEADER[] PROGMEM = "<!DOCTYPE html> <html> <head> <title>Steckdosensteuerung</title><meta charset=\"ISO-8859-1\"><style>"
 "body {background-color:#ffffff; color: #000000; font-family: 'Century Gothic', CenturyGothic, AppleGothic, sans-serif;}h1 {font-size: 2em;}\r\n"
 "button {"
 "background: #3498db;"
@@ -47,7 +47,7 @@ char HTML_TITLE[] PROGMEM =
 
 char HTML_CONTROL[] PROGMEM =
 "<p><form method=\"POST\" action=\"/send\">Housecode:<input type=\"TEXT\" name=\"house\" /> Code:<input type=\"TEXT\" name=\"code\" /> Ein/aus:<input type=\"TEXT\" name=\"onoff\" /> oder Tristate:<input type=\"text\" name=\"tri\"><input type=\"submit\" name=\"send\" value=\"schalten\" /></form></p>"
-"<p><form method=\"POST\" action=\"/estore\">Name:<input type=\"TEXT\" name=\"name\" /> Housecode:<input type=\"TEXT\" name=\"house\" /> Code:<input type=\"TEXT\" name=\"code\" /> Room:<input type=\"TEXT\" name=\"roomname\" /> TristateON:<input type=\"text\" name=\"tri1\"> TristateOff:<input type=\"text\" name=\"tri2\"><input type=\"submit\" name=\"speichern\" value=\"speichern\" /></form></p>"
+"<form method=\"POST\" action=\"/estore\"><table width=\"100%\"><thead><tr><th>Name</th><th>Housecode</th><th>Code</th><th>Room</th><th>TristateON</th><th>TristateOff</th><th>UrlON</th><th>UrlOff</th><th>Speichern</th></tr></thead><tr><td><input type=\"TEXT\" name=\"name\" /></td><td><input type=\"TEXT\" name=\"house\" /></td><td><input type=\"TEXT\" name=\"code\" /></td><td><input type=\"TEXT\" name=\"roomname\" /></td><td><input type=\"text\" name=\"tri1\"></td><td><input type=\"text\" name=\"tri2\"></td><td><input type=\"text\" name=\"url1\"></td><td><input type=\"text\" name=\"url2\"></td><td><input type=\"submit\" name=\"speichern\" value=\"speichern\" /></td></table></form>"
 "</center></body>";
 
 char HTML_DEVCONTROL_1[] PROGMEM =
@@ -68,6 +68,7 @@ RCSwitch *WebInterface::_mySwitch;
 WemosDevices *WebInterface::_myWemos;
 
 volatile char *WebInterface::_nameToDelete;
+volatile char *WebInterface::_urlToCall;
 
 void WebInterface::HandleSetupRoot(AsyncWebServerRequest *request)
 {
@@ -154,11 +155,12 @@ void WebInterface::HandleRoot(AsyncWebServerRequest * request)
 	request->send(200, "text/html", outputbuffer);
 }
 
-void WebInterface::SetDevices(RCSwitch *myswitch, WemosDevices *myWemos, char *nameToDelete)
+void WebInterface::SetDevices(RCSwitch *myswitch, WemosDevices *myWemos, char *nameToDelete, char *urlToCall)
 {
 	_mySwitch = myswitch;
 	_myWemos = myWemos;
 	_nameToDelete = nameToDelete;
+	_urlToCall = urlToCall;
 }
 
 void WebInterface::TurnOn(void * arg)
@@ -170,6 +172,10 @@ void WebInterface::TurnOn(void * arg)
 	if (strlen(dp.tri1) > 2)
 	{
 		_mySwitch->sendTriState(dp.tri1);
+	}
+	else if (strlen(dp.urlOn) > 2)
+	{
+		WebInterface::SetUrlToCall(strdup(dp.urlOn));
 	}
 	else
 	{
@@ -191,6 +197,10 @@ void WebInterface::TurnOff(void * arg)
 	{
 		_mySwitch->sendTriState(dp.tri2);
 	}
+	else  if (strlen(dp.urlOff) > 2)
+	{
+		WebInterface::SetUrlToCall(strdup(dp.urlOff));
+	}
 	else
 	{
 		_mySwitch->switchOff(dp.housecode, dp.code);
@@ -202,9 +212,19 @@ void WebInterface::SetNameToDelete(char * nameToDelete)
 	WebInterface::_nameToDelete = nameToDelete;
 }
 
+void WebInterface::SetUrlToCall(char *urlToCall)
+{
+	WebInterface::_urlToCall = urlToCall;
+}
+
 volatile char * WebInterface::GetNameToDelete()
 {
 	return WebInterface::_nameToDelete;
+}
+
+volatile char * WebInterface::GetUrlToCall()
+{
+	return WebInterface::_urlToCall;
 }
 
 void WebInterface::HandleSpecificArg(AsyncWebServerRequest * request)
@@ -251,14 +271,24 @@ void WebInterface::HandleEsocket(AsyncWebServerRequest * request)
 	String a = request->arg("no");
 	String b = request->arg("sw");
 	int no = atoi(a.c_str());
+	
 	if (no < N_DIPSWITCHES)
 	{
 		estore->dipSwitchLoad(no, &dp);
+		Serial.print(strlen(dp.tri2));
+		Serial.print(" ");
+		Serial.println(strlen(dp.urlOff));
 		if (b == "0")
 		{
 			if (strlen(dp.tri2) > 2)
 			{
 				_mySwitch->sendTriState(dp.tri2);
+			}
+			else   if (strlen(dp.urlOff) > 2)
+			{
+				Serial.print("Off ");
+				Serial.println(dp.urlOff);
+				WebInterface::SetUrlToCall(strdup(dp.urlOff));
 			}
 			else
 			{
@@ -270,6 +300,12 @@ void WebInterface::HandleEsocket(AsyncWebServerRequest * request)
 			if (strlen(dp.tri1) > 2)
 			{
 				_mySwitch->sendTriState(dp.tri1);
+			}
+			else if (strlen(dp.urlOn) > 2)
+			{
+				Serial.print("On ");
+				Serial.println(dp.urlOn);
+				WebInterface::SetUrlToCall(strdup(dp.urlOn));
 			}
 			else
 			{
@@ -295,7 +331,7 @@ void WebInterface::HandleEDelete(AsyncWebServerRequest * request)
 		{
 			if (_nameToDelete == NULL)
 			{
-				_nameToDelete = dp.name;
+				WebInterface::SetNameToDelete(strdup(dp.name));
 			}
 				
 		}
@@ -315,7 +351,8 @@ void WebInterface::HandleEStore(AsyncWebServerRequest * request)
 	String c = request->arg("code");
 	String c2 = request->arg("tri1");
 	String c3 = request->arg("tri2");
-
+	String d1 = request->arg("url1");
+	String d2 = request->arg("url2");
 	String d = request->arg("roomname");
 	int no = estore->dipSwitchFindFree();
 	if (no >= 0)
@@ -326,11 +363,15 @@ void WebInterface::HandleEStore(AsyncWebServerRequest * request)
 		memcpy(dp.roomname, (char *)d.c_str(), sizeof(dp.roomname));
 		memcpy(dp.tri1, (char*)c2.c_str(), sizeof(dp.tri1));
 		memcpy(dp.tri2, (char *)c3.c_str(), sizeof(dp.tri2));
+		memcpy(dp.urlOn, (char *)d1.c_str(), sizeof(dp.urlOn));
+		memcpy(dp.urlOff, (char *)d2.c_str(), sizeof(dp.urlOff));
 		dp.name[sizeof(dp.name) - 1] = 0;
 		dp.housecode[sizeof(dp.housecode) - 1] = 0;
 		dp.code[sizeof(dp.code) - 1] = 0;
 		dp.tri1[sizeof(dp.tri1) - 1] = 0;
 		dp.tri2[sizeof(dp.tri2) - 1] = 0;
+		dp.urlOff[sizeof(dp.urlOff) - 1] = 0;
+		dp.urlOn[sizeof(dp.urlOn) - 1] = 0;
 		estore->dipSwitchSave(no, &dp);
 		_myWemos->AddDevice(dp.name, WebInterface::TurnOn, WebInterface::TurnOff, new int(no));
 		rebuildHTML = true;

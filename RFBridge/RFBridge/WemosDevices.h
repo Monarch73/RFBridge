@@ -30,6 +30,7 @@ public:
 	void AddDevice(char *name,callbacktype methodOn, callbacktype methodOff, void *arg=0);
 
 	void RemoveDevice(volatile char * name);
+	void SetStateDevice(volatile char *name, int state);
 
 private:
 

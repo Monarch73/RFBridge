@@ -9,12 +9,6 @@ HttpServer::HttpServer()
 {
 	this->_objId = 0x0c1a0;
 	this->_client = NULL;
-	this->inputBuffer = (char *)malloc(N_INPUTBUFFER);
-	if (this->inputBuffer == NULL)
-	{
-		Serial.println("out of memory");
-		while (-1);
-	}
 }
 
 void HttpServer::onPoll(void *obj, AsyncClient* c) {
@@ -105,7 +99,7 @@ void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
 			break;
 
 		case SWITCHSTATE:
-			tthis->SendTcpResponseOK(c);
+			tthis->SendTcpResponseOKGetBinaryState(c);
 			break;
 
 		default:
@@ -130,12 +124,13 @@ void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
 }
 
 void HttpServer::onClient(void *obj, AsyncClient* c) {
+	Serial.println("ON CLIENT CALLED");
 	HttpServer *tthis = (HttpServer *)obj;
 	if (tthis->_objId == 0x0c1a0)
 	{
 		if (tthis->_client)
 		{
-
+			Serial.println("removing old client");
 			if (tthis->_client->connected())
 			{
 				tthis->_client->close();
@@ -169,12 +164,42 @@ void HttpServer::Start(int port, char *devicename, char *uuid, callbacktype meth
 	this->_methodOn = methodOn;
 	this->_methodOff = methodOff;
 	this->_arg = arg;
+	this->state = 0;
 }
 
 void HttpServer::Stop()
 {
-	this->_server->end();
-	delete this->_server;
+	if (this->_client != NULL)
+	{
+		Serial.println("Client unlinking");
+		this->_client->onAck(NULL, NULL);
+		this->_client->onConnect(NULL, NULL);
+		this->_client->onData(NULL, NULL);
+		this->_client->onDisconnect(NULL, NULL);
+		this->_client->onError(NULL, NULL);
+		this->_client->onPoll(NULL, NULL);
+		this->_client->onTimeout(NULL, NULL);
+		Serial.println("Client Unlinked");
+		if (this->_client != NULL && this->_client->freeable())
+		{
+
+			Serial.println("feeing client");
+			this->_client->close(true);
+			this->_client->free();
+			delete this->_client;
+			this->_client = NULL;
+		}
+	}
+
+	if (this->_server != NULL)
+	{	
+		Serial.println("Httpserver ending");
+		this->_server->end();
+		Serial.println("Httpserver deleting");
+
+		delete this->_server;
+		this->_server = NULL;
+	}
 }
 
 HttpServer::~HttpServer()
@@ -204,4 +229,32 @@ void HttpServer::SendTcpResponseOK(AsyncClient *client)
 	"Content-Length: 0\r\n\r\n";
 
 	client->write(response, strlen(response));
+}
+
+void HttpServer::SendTcpResponseOKGetBinaryState(AsyncClient *client)
+{
+
+	const char *response =
+		"HTTP/1.1 200 OK\r\n"
+		"Content-Type: text/plain\r\n"
+		"Content-Length: %d\r\n\r\n%s";
+
+	const char *xmlResponse = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
+	"<s:Body>"
+	"<u:GetBinaryStateResponse xmlns:u=\"urn:Belkin:service:basicevent:1\">"
+		"<BinaryState>%d</BinaryState>"
+	"</u:GetBinaryStateResponse>"
+		"</s:Body>"
+		"</s:Envelope>";
+
+	char *xmlresponsespace = (char*)malloc(strlen(xmlResponse)+10);
+	sprintf(xmlresponsespace, xmlResponse, this->state);
+	char *resonsespace = (char *)malloc(strlen(response) + strlen(xmlresponsespace) + 10);
+	sprintf(resonsespace, response, strlen(xmlResponse), xmlresponsespace);
+	//Serial.println(resonsespace);
+	client->write(resonsespace, strlen(resonsespace));
+
+	free(resonsespace);
+	free(xmlresponsespace);
+
 }

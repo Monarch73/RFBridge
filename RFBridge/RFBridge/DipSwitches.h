@@ -3,13 +3,12 @@
 struct dipswitches_struct
 {
 	char name[20];
-	char roomname[20];
 	char housecode[6];
 	char code[6];
 	char tri1[16];
 	char tri2[16];
-	char urlOn[160];
-	char urlOff[160];
+	char urlOn[91];
+	char urlOff[91];
 };
 
 #endif

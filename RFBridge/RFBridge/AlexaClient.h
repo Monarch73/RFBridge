@@ -35,6 +35,7 @@ public:
 	void SendUdpResponse(AsyncUDPPacket *udp);
 	void Handle();
 	void Stop();
+	void SetState(int state);
 	char *_name;
 
 

@@ -65,7 +65,7 @@ EStore *WebInterface::estore;
 bool WebInterface::rebuildHTML;
 char *WebInterface::outputbuffer=NULL;
 RCSwitch *WebInterface::_mySwitch;
-WemosDevices *WebInterface::_myWemos;
+WemosDevices *WebInterface::_myWemos=NULL;
 
 volatile char *WebInterface::_nameToDelete;
 volatile char *WebInterface::_urlToCall;
@@ -182,6 +182,11 @@ void WebInterface::TurnOn(void * arg)
 
 		_mySwitch->switchOn(dp.housecode, dp.code);
 	}
+	if (_myWemos != NULL)
+	{
+		_myWemos->SetStateDevice((char *)dp.name, 1);
+	}
+
 
 }
 
@@ -205,6 +210,11 @@ void WebInterface::TurnOff(void * arg)
 	{
 		_mySwitch->switchOff(dp.housecode, dp.code);
 	}
+	if (_myWemos != NULL)
+	{
+		_myWemos->SetStateDevice((char *)dp.name, 0);
+	}
+
 }
 
 void WebInterface::SetNameToDelete(char * nameToDelete)
@@ -294,6 +304,12 @@ void WebInterface::HandleEsocket(AsyncWebServerRequest * request)
 			{
 				_mySwitch->switchOff(dp.housecode, dp.code);
 			}
+
+			if (_myWemos != NULL)
+			{
+				_myWemos->SetStateDevice((char *)dp.name, 0);
+			}
+			
 		}
 		else
 		{
@@ -311,7 +327,12 @@ void WebInterface::HandleEsocket(AsyncWebServerRequest * request)
 			{
 				_mySwitch->switchOn(dp.housecode, dp.code);
 			}
+			if (_myWemos != NULL)
+			{
+				_myWemos->SetStateDevice((char *)dp.name, 1);
+			}
 		}
+
 		delay(100);
 	}
 
@@ -360,7 +381,7 @@ void WebInterface::HandleEStore(AsyncWebServerRequest * request)
 		memcpy(dp.name, (char *)a.c_str(), sizeof(dp.name));
 		memcpy(dp.housecode, (char *)b.c_str(), sizeof(dp.housecode));
 		memcpy(dp.code, (char *)c.c_str(), sizeof(dp.code));
-		memcpy(dp.roomname, (char *)d.c_str(), sizeof(dp.roomname));
+		//memcpy(dp.roomname, (char *)d.c_str(), sizeof(dp.roomname));
 		memcpy(dp.tri1, (char*)c2.c_str(), sizeof(dp.tri1));
 		memcpy(dp.tri2, (char *)c3.c_str(), sizeof(dp.tri2));
 		memcpy(dp.urlOn, (char *)d1.c_str(), sizeof(dp.urlOn));

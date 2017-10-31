@@ -30,10 +30,13 @@ AlexaClient::AlexaClient(char *name,int id, callbacktype methodOn, callbacktype 
 void AlexaClient::Stop()
 {
 	ESP.restart();
-	Serial.println("AlexaClient stop");
-	this->_server->Stop();
-	Serial.println("AlexaClient delete");
-	delete this->_server;
+	if (this->_server != NULL)
+	{
+		Serial.println("AlexaClient stop");
+		this->_server->Stop();
+		Serial.println("AlexaClient delete");
+		delete this->_server;
+	}
 }
 
 void AlexaClient::SendUdpResponse(AsyncUDPPacket *udp)
@@ -60,4 +63,12 @@ void AlexaClient::Handle()
 
 AlexaClient::~AlexaClient()
 {
+}
+
+void AlexaClient::SetState(int state)
+{
+	if (this->_server != NULL)
+	{
+		this->_server->state = state;
+	}
 }

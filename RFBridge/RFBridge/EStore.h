@@ -10,7 +10,7 @@
 #endif
 
 #include "DipSwitches.h"
-#define N_DIPSWITCHES 8
+#define N_DIPSWITCHES 16
 #define N_CHAR_SSID   20
 #define N_CHAR_PASSWORD 80
 class EStore

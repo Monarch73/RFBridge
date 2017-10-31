@@ -52,6 +52,7 @@ public:
 	void Start(int port, char *devicename, char *uuid, callbacktype methodOn, callbacktype methodOff, void *arg);
 	void Stop();
 	void Handle();
+	int state;
 
 private:
 	AsyncServer *_server;
@@ -60,9 +61,9 @@ private:
 	char *_uuid;
 	REQUESTPAGE _requestedPage;
 	uint16_t _objId;
-	char *inputBuffer;
 	void SendTcpResponse(AsyncClient *client);
 	void SendTcpResponseOK(AsyncClient *client);
+	void SendTcpResponseOKGetBinaryState(AsyncClient *client);
 	static void onClient(void *obj, AsyncClient* c);
 	static void onData(void *obj, AsyncClient* c, void *buf, size_t len);
 	static void onTimeout(void *obj, AsyncClient* c, uint32_t time);

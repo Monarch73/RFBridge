@@ -19,6 +19,7 @@ WemosDevices wemos=WemosDevices();
 //EStore estore = EStore();
 RCSwitch mySwitch = RCSwitch();
 AsyncWebServer *server;
+int deletepause = 0;
 
 void initDevices()
 {
@@ -178,12 +179,20 @@ void loop() {
 
 	if ((nameToDelete = WebInterface::GetNameToDelete())!=NULL)
 	{
-		Serial.print("deleting ");
-		Serial.println((char *)nameToDelete);
+		if (deletepause++ < 5)
+		{
+			delay(100);
+		}
+		else
+		{
+			deletepause = 0;
+			Serial.print("deleting ");
+			Serial.println((char *)nameToDelete);
 
-		wemos.RemoveDevice(nameToDelete);
-		WebInterface::SetNameToDelete(NULL);
-		free((void *)nameToDelete);
+			wemos.RemoveDevice(nameToDelete);
+			WebInterface::SetNameToDelete(NULL);
+			free((void *)nameToDelete);
+		}
 	}
 
 	if ((urlToCall2 = WebInterface::GetUrlToCall()) != NULL)

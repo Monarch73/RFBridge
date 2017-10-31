@@ -101,3 +101,18 @@ WemosDevices::~WemosDevices()
 {
 }
 
+void WemosDevices::SetStateDevice(volatile char *name, int state)
+{
+	for (int i = 0; i < N_SERVER; i++)
+	{
+		if (this->_servers[i] != NULL)
+		{
+			if (this->_servers[i]->_name != NULL && strlen(this->_servers[i]->_name) == strlen((char *)name) && strcmp(this->_servers[i]->_name, (char *)name) == 0)
+			{
+				Serial.print("Setting state ");
+				Serial.println(state);
+				this->_servers[i]->SetState(state);
+			}
+		}
+	}
+}

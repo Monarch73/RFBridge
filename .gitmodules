@@ -13,3 +13,6 @@
 [submodule "hardware/esp8266/esp8266"]
 	path = hardware/esp8266/esp8266
 	url = https://github.com/esp8266/Arduino.git
+[submodule "libraries/c64-theme"]
+	path = libraries/c64-theme
+	url = https://github.com/russellcardullo/c64-theme.git

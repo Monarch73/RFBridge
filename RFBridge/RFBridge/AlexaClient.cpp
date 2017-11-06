@@ -29,13 +29,15 @@ AlexaClient::AlexaClient(char *name,int id, callbacktype methodOn, callbacktype 
 
 void AlexaClient::Stop()
 {
-	ESP.restart();
+	//ESP.restart();
 	if (this->_server != NULL)
 	{
 		Serial.println("AlexaClient stop");
 		this->_server->Stop();
 		Serial.println("AlexaClient delete");
 		delete this->_server;
+		Serial.println("AlexaClient deleted");
+
 	}
 }
 

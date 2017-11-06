@@ -198,6 +198,8 @@ void HttpServer::Stop()
 		Serial.println("Httpserver deleting");
 
 		delete this->_server;
+		Serial.println("Httpserver deleted");
+
 		this->_server = NULL;
 	}
 }

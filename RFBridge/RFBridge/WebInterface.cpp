@@ -4,61 +4,41 @@
 
 #include "WebInterface.h"
 
-char HTML_HEADER[] PROGMEM = "<!DOCTYPE html> <html> <head> <title>Steckdosensteuerung</title><meta charset=\"ISO-8859-1\"><style>"
-"body {background-color:#ffffff; color: #000000; font-family: 'Century Gothic', CenturyGothic, AppleGothic, sans-serif;}h1 {font-size: 2em;}\r\n"
-"button {"
-"background: #3498db;"
-"background - image: -webkit - linear - gradient(top, #3498db, #2980b9);"
-"background - image: -moz - linear - gradient(top, #3498db, #2980b9);"
-"background - image: -ms - linear - gradient(top, #3498db, #2980b9);"
-"background - image: -o - linear - gradient(top, #3498db, #2980b9);"
-"background - image: linear - gradient(to bottom, #3498db, #2980b9);"
-"-webkit - border - radius: 28;"
-"-moz - border - radius: 28;"
-"border - radius: 28px;"
-"font - family: Arial;"
-"color: #ffffff;"
-"font - size: 20px;"
-"padding: 10px 20px 10px 20px;"
-"text - decoration: none;"
-"}"
-"button:hover{"
-"background: #3cb0fd;"
-"  background - image: -webkit - linear - gradient(top, #3cb0fd, #3498db);"
-" background - image: -moz - linear - gradient(top, #3cb0fd, #3498db);"
-" background - image: -ms - linear - gradient(top, #3cb0fd, #3498db);"
-" background - image: -o - linear - gradient(top, #3cb0fd, #3498db);"
-" background - image: linear - gradient(to bottom, #3cb0fd, #3498db);"
-" text - decoration: none;"
-"}"
-"</style></head><body><center>";
+char HTML_HEADER[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>RFBridge</title><link rel=\"stylesheet/less\" type=\"text/css\" href=\"http://www.monarch.de/c64-theme/css/style.css\" />"
+"<script src=\"http://www.monarch.de/c64-theme/js/less-1.3.0.min.js\" type=\"text/javascript\"></script><script>function changeFont(font) {document.getElementById('font-div').className = font; }"
+"function changeFontSize(fontsize) { document.getElementById('font-size-div').className = fontsize; }</script><link rel=\"shortcut icon\" href=\"http://www.monarch.de/c64-theme/images/favicon.ico\">"
+"</head><body><div class=\"container\"><div id=\"font-div\" class=\"c64pm\">";
+
+char HTML_HEADER_SETUP[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>RFBridge</title>"
+"</head><body>";
+
 
 char HTML_SSID[] PROGMEM =
-"<h1>Steckdosensteuerung SETUP</h1>"
-"<p><form method=\"POST\" action=\"/setup\">SSID:<input type=\"TEXT\" name=\"ssid\" /> Password:<input type=\"TEXT\" name=\"password\" /> <input type=\"submit\" name=\"send\" value=\"speichern\" /></form></p>"
-"</center></body>";
+"<h1>RFBridge SETUP</h1>"
+"<p><form method=\"POST\" action=\"/setup\">SSID:<input type=\"TEXT\" name=\"ssid\" /> Password:<input type=\"TEXT\" name=\"password\" /> <input type=\"submit\" name=\"send\" value=\"save\" /></form></p>"
+"</body>";
 
 char HTML_SSIDOK[] PROGMEM =
-"<h1>Steckdosensteuerung OK - Please reset device.</h1>"
-"</center></body>";
+"<h1>Configuration OK - Please reset device.</h1>"
+"</body>";
 
 char HTML_TITLE[] PROGMEM =
-"<h1>Steckdosensteuerung</h1>";
+"<h1>RFBridge</h1>";
 
 char HTML_CONTROL[] PROGMEM =
-"<p><form method=\"POST\" action=\"/send\">Housecode:<input type=\"TEXT\" name=\"house\" /> Code:<input type=\"TEXT\" name=\"code\" /> Ein/aus:<input type=\"TEXT\" name=\"onoff\" /> oder Tristate:<input type=\"text\" name=\"tri\"><input type=\"submit\" name=\"send\" value=\"schalten\" /></form></p>"
-"<form method=\"POST\" action=\"/estore\"><table width=\"100%\"><thead><tr><th>Name</th><th>Housecode</th><th>Code</th><th>Room</th><th>TristateON</th><th>TristateOff</th><th>UrlON</th><th>UrlOff</th><th>Speichern</th></tr></thead><tr><td><input type=\"TEXT\" name=\"name\" /></td><td><input type=\"TEXT\" name=\"house\" /></td><td><input type=\"TEXT\" name=\"code\" /></td><td><input type=\"TEXT\" name=\"roomname\" /></td><td><input type=\"text\" name=\"tri1\"></td><td><input type=\"text\" name=\"tri2\"></td><td><input type=\"text\" name=\"url1\"></td><td><input type=\"text\" name=\"url2\"></td><td><input type=\"submit\" name=\"speichern\" value=\"speichern\" /></td></table></form>"
-"</center></body>";
+"<p><form method=\"POST\" action=\"/send\"><table width=\"80%\" border=\"1\"><thead><tr><th colspan=\"2\">Instant</th></tr><tr><td>Housecode</td><td><input type=\"TEXT\" name=\"house\" /></td></tr><td>Code</td><td><input type=\"TEXT\" name=\"code\" /></td></tr><tr><td>on/off(0/1)</td><td><input type=\"TEXT\" name=\"onoff\" /></td></tr><tr><td>Tristate</td><td><input type=\"text\" name=\"tri\"></td></tr><tr><td colspan=\"2\" align=\"center\"><input type=\"submit\" name=\"send\" value=\"action\" /></td></tr></table></form></p>"
+"<p><form method=\"POST\" action=\"/estore\"><table width=\"80%\" border=\"5\"><thead><tr><th colspan=\"2\">Switch Configuration</th></tr></thead><tr><td>Name</td><td><input type=\"TEXT\" name=\"name\" /></td></tr><tr><td>Housecode</td><td><input type=\"TEXT\" name=\"house\" /></td></tr><tr><td>Code</td><td><input type=\"TEXT\" name=\"code\" /></td></tr><tr><td colspan=\"2\">&nbsp;</td></tr><tr><td>Tristate on</td><td><input type=\"text\" name=\"tri1\"></td></tr><tr><td>Tristate off</td><td><input type=\"text\" name=\"tri2\"></td></tr><tr><td colspan=\"2\">&nbsp;</td></tr><tr><td>URL on</td><td><input type=\"text\" name=\"url1\"></td></tr><td>URL off</td><td><input type=\"text\" name=\"url2\"></td></tr><td>&nbsp;</td><td align=\"center\"><input type=\"submit\" name=\"speichern\" value=\"save\" /></td></tr></table></form></p>"
+"</div></div></body>";
 
 char HTML_DEVCONTROL_1[] PROGMEM =
 "<a href=\"esocket?no=";
 
 char HTML_DEVCONTROL_2[] PROGMEM =
-"&sw=1\"><button>AN</button></a>&nbsp;<a href=\"esocket?no=";
+"&sw=1\"> <button>ON</button></a>&nbsp;<a href=\"esocket?no=";
 char HTML_DEVCONTROL_3[] PROGMEM =
-"&sw=0\"><button>AUS</button></a><a href=\"edelete?no=";
+"&sw=0\"><button>OFF</button></a>&nbsp;<a href=\"edelete?no=";
 char HTML_DEVCONTROL_4[] PROGMEM =
-"&sw=0\"><button>Loeschen</button></a></p>";
+"&sw=0\"><button>delete</button></a></p>";
 
 
 EStore *WebInterface::estore;
@@ -72,15 +52,15 @@ volatile char *WebInterface::_urlToCall;
 
 void WebInterface::HandleSetupRoot(AsyncWebServerRequest *request)
 {
-	char setupoutputbuffer[sizeof(HTML_HEADER)+sizeof(HTML_SSID)+5];
-	strcpy_P(setupoutputbuffer, HTML_HEADER);
+	char setupoutputbuffer[sizeof(HTML_HEADER_SETUP)+sizeof(HTML_SSID)+5];
+	strcpy_P(setupoutputbuffer, HTML_HEADER_SETUP);
 	strcat_P(setupoutputbuffer, HTML_SSID);
 	request->send(200, "text / plain", setupoutputbuffer);
 }
 
 void WebInterface::handleSetupSSID(AsyncWebServerRequest *request)
 {
-	char setupoutputbuffer[sizeof(HTML_HEADER)+sizeof(HTML_SSIDOK)+5];
+	char setupoutputbuffer[sizeof(HTML_HEADER_SETUP)+sizeof(HTML_SSIDOK)+5];
 	String a = request->arg("ssid");
 	String b = request->arg("password");
 
@@ -89,7 +69,7 @@ void WebInterface::handleSetupSSID(AsyncWebServerRequest *request)
 
 	WebInterface::estore->wifiSave();
 
-	strcpy_P(setupoutputbuffer, HTML_HEADER);
+	strcpy_P(setupoutputbuffer, HTML_HEADER_SETUP);
 	strcat_P(setupoutputbuffer, HTML_SSIDOK);
 	request->send(200, "text / plain", setupoutputbuffer);
 }
@@ -117,7 +97,7 @@ void WebInterface::HandleRoot(AsyncWebServerRequest * request)
 			estore->dipSwitchLoad(i, &dp);
 			if (dp.name[0] != 0)
 			{
-				memorycou += (strlen(dp.name) + sizeof(HTML_DEVCONTROL_1) + sizeof(HTML_DEVCONTROL_2) + sizeof(HTML_DEVCONTROL_3) + sizeof(HTML_DEVCONTROL_4) + 20);
+				memorycou += (strlen(dp.name)+2 + sizeof(HTML_DEVCONTROL_1) + sizeof(HTML_DEVCONTROL_2) + sizeof(HTML_DEVCONTROL_3) + sizeof(HTML_DEVCONTROL_4) + 20);
 			}
 		}
 
@@ -139,6 +119,7 @@ void WebInterface::HandleRoot(AsyncWebServerRequest * request)
 				sprintf(zahl, "%d", i);
 				strcat(outputbuffer, "<p>");
 				strcat(outputbuffer, dp.name);
+				strcat(outputbuffer, ":");
 				strcat_P(outputbuffer, HTML_DEVCONTROL_1);
 				strcat(outputbuffer, zahl);
 				strcat_P(outputbuffer, HTML_DEVCONTROL_2);
@@ -146,13 +127,17 @@ void WebInterface::HandleRoot(AsyncWebServerRequest * request)
 				strcat_P(outputbuffer, HTML_DEVCONTROL_3);
 				strcat(outputbuffer, zahl);
 				strcat_P(outputbuffer, HTML_DEVCONTROL_4);
+				strcat(outputbuffer, "</p>");
 			}
 		}
 
 		strcat_P(outputbuffer, HTML_CONTROL);
 		rebuildHTML = false;
 	}
-	request->send(200, "text/html", outputbuffer);
+	//AsyncWebServerResponse * response = new AsyncBasicResponse(200, "text/html",outputbuffer); // Not modified
+	//response->addHeader("Access-Control-Allow-Origin", "http://www.monarch.de");
+	request->send(200, "text/html",outputbuffer);
+	//request->send(200, "text/html", outputbuffer);
 }
 
 void WebInterface::SetDevices(RCSwitch *myswitch, WemosDevices *myWemos, char *nameToDelete, char *urlToCall)

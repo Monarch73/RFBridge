@@ -11,6 +11,8 @@ Status of this dokumentation is incomplete. Parts that still need work are marke
 and ESPAsyncTCP to 9b0cc37cd7bdf4b7d17a363141d2e988aa46652c
 
  - If the ESP8266 keeps loosing configuration data and constantly booting into "EasyAlexa"-Mode, you are probably using the wrong flashing tool. For windows users I recommend using the github flasher seen below..
+ 
+ - Apparantly, the builtin WeMo device control is no longer available in the new **Amazon Echo Plus** devices. 
 
 # Flashing the release.
 

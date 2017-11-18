@@ -33,8 +33,19 @@ You will be asked to enter a ESSID and Password. Click Save and reset the device
 The esp8266 will now connect to the network. To identify the IP of your device, You can either use a network scanner (ie "Net Scan" for Android Devices) or a usp port monitor.
 Browse to the ip of your device.
 
-@@todo
+Add a switch
+In the "Switch Configuration" section, specify a name for the switch. This name will be reconzied by Alexa later on so it's best to specify a distinct name.
+
+RF-Switches usaly have 10 dip-switches. The first 5 switches specify a "housecode" and the last 5 specify the device Code. The position of the switches need to be translated to 0 (=off position) and 1 (=on postion) IE.
+
+Housecode    00100
+Code         10011
+
+Opionaly, if your RF Switches don't have dip-switches, you can specify so called "TriState Codes". These TriState Codes can be taken from the output of rc-switch/AdvancedReceiveDemo-example. You need a receiver-module for this procedure.
+
+Another option, if you wan't to trigger other devices on your smarthome network, your can specify URLs that will be fired when alexa triggers a switch.
  
+Hit Save and start the device recover function in the alexa app. The above configured device should be discovered.
 
 
 # building sources in docker.

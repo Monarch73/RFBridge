@@ -4,6 +4,7 @@
 
 #include <ESP8266WiFi.h>
 #include "AlexaClient.h"
+#include "WeMo.h"
 
 AlexaClient::AlexaClient(char *name,int id, callbacktype methodOn, callbacktype methodOff, void *arg)
 {
@@ -41,19 +42,39 @@ void AlexaClient::Stop()
 	}
 }
 
-void AlexaClient::SendUdpResponse(AsyncUDPPacket *udp)
+void AlexaClient::SendUdpResponse(AsyncUDPPacket *udp, int udpPattern)
 {
-	uint8_t response[strlen(UDP_TEMPLATE) + 40];
-	sprintf_P((char*)response, UDP_TEMPLATE,
-		this->_ip,
+	// alt
+	////uint8_t response[strlen(UDP_TEMPLATE) + 40];
+	////sprintf_P((char*)response, UDP_TEMPLATE,
+	////	this->_ip,
+	////	this->_port,
+	////	this->_uuid,
+	////	this->_uuid
+	////);
+
+	////Serial.println("Request answered");
+	////udp->write(response, strlen((char *)response));
+
+	// neu
+
+	char buffer[16];
+	IPAddress ip = WiFi.localIP();
+	sprintf(buffer, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+
+	uint8_t response[strlen(UDP_TEMPLATE) + 128];
+	snprintf_P((char *)response, sizeof(response), UDP_TEMPLATE,
+		buffer,
 		this->_port,
 		this->_uuid,
-		this->_uuid
+		udpPattern == 1 ? UDP_DEVICE_PATTERN_1 : udpPattern == 2 ? UDP_DEVICE_PATTERN_2 : UDP_DEVICE_PATTERN_3,
+		this->_uuid,
+		udpPattern == 1 ? UDP_DEVICE_PATTERN_1 : udpPattern == 2 ? UDP_DEVICE_PATTERN_2 : UDP_DEVICE_PATTERN_3
 	);
 
-	Serial.println("Request answered");
-	udp->write(response, strlen((char *)response));
+	Serial.println((char *)response);
 
+	udp->write(response, strlen((char *)response));
 }
 
 

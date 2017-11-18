@@ -1,7 +1,6 @@
 // 
 // 
 // 
-
 #include "WemosDevices.h"
 #include <ESP8266WiFi.h>
 
@@ -9,31 +8,43 @@
 // http://www.monarch.de/redmine/projects/hueskeo/wiki/Update_arduino_esp8266-core
 #include "ESPAsyncUDP.h"
 #include "HttpServer.h"
+#include "WeMo.h"
 
 void WemosDevices::Start()
 {
-
+	this->_inputBuffers = (char *)malloc(INPUTBUFFERSIZE);
 	if (_udp.listenMulticast(IPAddress(239, 255, 255, 250), 1900))
 	{
 		Serial.println(WiFi.localIP());
 
 		_udp.onPacket([this](AsyncUDPPacket packet) {
-			char *data = (char *)packet.data();
+			int udpPattern = 0;
+			int len = packet.length() - 1 > INPUTBUFFERSIZE ? INPUTBUFFERSIZE : packet.length() - 1;
+
+			memcpy(this->_inputBuffers, packet.data(), packet.length());
+			
 			Serial.print("UDP Packet Type: ");
 			Serial.print(packet.isBroadcast() ? "Broadcast" : packet.isMulticast() ? "Multicast" : "Unicast");
 			Serial.print(", From: ");
 			Serial.print(packet.remoteIP());
 			Serial.print(":");
 			Serial.println(packet.remotePort());
-			if (strstr((char *)data, UDP_SEARCH_PATTERN) != NULL)
+			char * p = (char *)this->_inputBuffers;
+			p[len+1] = 0;
+
+			if (strstr(p, UDP_SEARCH_PATTERN) == this->_inputBuffers) 
 			{
-				if (strstr((char *)data, UDP_DEVICE_PATTERN) != NULL)
+				if (strstr(p, UDP_DEVICE_PATTERN_1) != NULL) udpPattern = 1;
+				if (strstr(p, UDP_DEVICE_PATTERN_2) != NULL) udpPattern = 2;
+				if (strstr(p, UDP_DEVICE_PATTERN_3) != NULL) udpPattern = 3;
+				if (strstr(p, UDP_ROOT_DEVICE) != NULL) udpPattern = 3;
+				if (udpPattern) 
 				{
 					for (int i = 0; i < N_SERVER; i++)
 					{
 						if (_servers[i] != NULL)
 						{
-							_servers[i]->SendUdpResponse(&packet);
+							_servers[i]->SendUdpResponse(&packet, udpPattern);
 						}
 					}
 				}

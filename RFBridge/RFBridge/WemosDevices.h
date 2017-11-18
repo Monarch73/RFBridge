@@ -14,11 +14,9 @@
 #include "ESPAsyncUDP.h"
 #include "AlexaClient.h"
 #include "HttpServer.h"
-#define UDP_SEARCH_PATTERN      "M-SEARCH"
-#define UDP_DEVICE_PATTERN      "urn:Belkin:device:**"
 
 #define N_SERVER	16
-
+#define INPUTBUFFERSIZE	2048
 
 class WemosDevices
 {
@@ -33,7 +31,7 @@ public:
 	void SetStateDevice(volatile char *name, int state);
 
 private:
-
+	char *_inputBuffers;
 	AsyncUDP _udp;
 	AlexaClient **_servers;
 };

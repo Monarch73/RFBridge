@@ -48,6 +48,9 @@
     <ClInclude Include="WebInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WeMo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="board.txt" />

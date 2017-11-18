@@ -13,27 +13,6 @@
 #include "CallbackType.h"
 
 #define N_INPUTBUFFER 1024
-const char SETUP_TEMPLATE[] PROGMEM =
-"<?xml version=\"1.0\"?>"
-"<root><device>"
-"<deviceType>urn:Belkin:device:controllee:1</deviceType>"
-"<friendlyName>%s</friendlyName>"
-"<manufacturer>Belkin International Inc.</manufacturer>"
-"<modelName>FauxmoESP</modelName>"
-"<modelNumber>2.0.0</modelNumber>"
-"<UDN>uuid:Socket-1_0-%s</UDN>"
-"</device></root>";
-
-const char HEADERS[] PROGMEM =
-"HTTP/1.1 200 OK\r\n"
-"CONTENT-LENGTH: %d\r\n"
-"CONTENT-TYPE: text/xml\r\n"
-"DATE: Sun, 01 Jan 2017 00:00:00 GMT\r\n"
-"LAST-MODIFIED: Sat, 01 Jan 2017 00:00:00 GMT\r\n"
-"SERVER: Unspecified, UPnP/1.0, Unspecified\r\n"
-"X-USER-AGENT: redsonic\r\n"
-"CONNECTION: close\r\n\r\n"
-"%s\r\n";
 
 enum REQUESTPAGE
 {
@@ -55,6 +34,10 @@ public:
 	int state;
 
 private:
+	void _handleSetup(AsyncClient *c, char *buf, size_t len);
+	void _handleEventService(AsyncClient *c, char *buf, size_t len);
+	void _handleMetaInfoService(AsyncClient *c, char *buf, size_t len);
+	void _handleControl(AsyncClient *c, char *buf, size_t len);
 	AsyncServer *_server;
 	AsyncClient *_client;
 	char *_name;

@@ -4,6 +4,7 @@
 
 #include "HttpServer.h"
 #include "HelperClass.h"
+#include "WeMo.h"
 
 HttpServer::HttpServer()
 {
@@ -45,74 +46,44 @@ void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
 	{
 		char *inputBuffer = (char *)buf;
 
-#ifdef _DEBUG
 		for (uint cou = 0; cou < len; cou++)
 			Serial.print(*(inputBuffer+cou));
 		Serial.println("");
-#endif // DEBUG
 
+		const char match[] = { "GET /setup.xml HTTP/1.1" };
+		const char matchService[] = { "GET /eventservice.xml HTTP/1.1" };
+		const char matchInfoService[] = { "GET /metainfoservice.xml HTTP/1.1" };
+		const char matchControl[] = { "POST /upnp/control/basicevent1 HTTP/1.1" };
 
-		if (HelperClass::sstrstr(inputBuffer, (char*)"setup.xml", len) != NULL)
+		if (memcmp(inputBuffer, match, strlen(match) - 1) == 0)
 		{
-			tthis->_requestedPage = SETUP;
-		}
-		else if (HelperClass::sstrstr(inputBuffer, (char*)"u:GetBinaryState", len) != NULL)
-		{
-			tthis->_requestedPage = SWITCHSTATE;
-		}
-		else if (HelperClass::sstrstr(inputBuffer, (char*)"<BinaryState>1</BinaryState>",len) != NULL)
-		{
-			tthis->_requestedPage = SWITCHON;
-		}
-		else if (HelperClass::sstrstr(inputBuffer, (char*)"<BinaryState>0</BinaryState>",len) != NULL)
-		{
-			tthis->_requestedPage = SWITCHOFF;
+			tthis->_handleSetup(c,  inputBuffer, len);
+			return;
 		}
 
-#ifdef _DEBUG
-		Serial.print("Action:");
-		Serial.println(tthis->_requestedPage);
-#endif // _DEBUG
-
-		switch (tthis->_requestedPage)
+		if (memcmp(inputBuffer, matchService, strlen(match) - 1) == 0) 
 		{
-
-		case SETUP:
-			tthis->SendTcpResponse(c);
-			break;
-
-		case SWITCHON:
-			tthis->SendTcpResponseOK(c);
-			if (tthis->_methodOn != NULL && tthis->_arg != NULL)
-			{
-				tthis->_methodOn(tthis->_arg);
-			}
-			break;
-
-		case SWITCHOFF:
-			if (tthis->_methodOff != NULL && tthis->_arg != NULL)
-			{
-				tthis->_methodOff(tthis->_arg);
-			}
-
-			tthis->SendTcpResponseOK(c);
-			break;
-
-		case SWITCHSTATE:
-			tthis->SendTcpResponseOKGetBinaryState(c);
-			break;
-
-		default:
-			break;
+			tthis->_handleEventService(c, inputBuffer, len);
+			return;
 		}
 
+		if (memcmp(inputBuffer, matchInfoService, strlen(match) - 1) == 0) 
+		{
+			tthis->_handleMetaInfoService(c, inputBuffer, len);
+			return;
+		}
 
-		tthis->_requestedPage = NONE;
+		if (memcmp(inputBuffer, matchControl, strlen(match) - 1) == 0) 
+		{
+			tthis->_handleControl(c, inputBuffer, len);
+			return;
+		}
+
+		Serial.println("unhandeled");
+
 
 		c->close();
-
 		c->free();
-
 		tthis->_client = NULL;
 	}
 	else
@@ -213,26 +184,6 @@ void HttpServer::Handle()
 {
 }
 
-void HttpServer::SendTcpResponse(AsyncClient * client)
-{
-	char outputbuffer1[sizeof(SETUP_TEMPLATE) + 50];
-	char outputbuffer2[sizeof(HEADERS) + sizeof(SETUP_TEMPLATE) + 50];
-	sprintf_P(outputbuffer1, SETUP_TEMPLATE, this->_name, this->_uuid);
-
-	sprintf_P(outputbuffer2, HEADERS, strlen(outputbuffer1), outputbuffer1);
-	client->write(outputbuffer2, strlen(outputbuffer2));
-}
-
-void HttpServer::SendTcpResponseOK(AsyncClient *client)
-{
-	const char *response = 
-	"HTTP/1.1 200 OK\r\n"
-	"Content-Type: text/plain\r\n"
-	"Content-Length: 0\r\n\r\n";
-
-	client->write(response, strlen(response));
-}
-
 void HttpServer::SendTcpResponseOKGetBinaryState(AsyncClient *client)
 {
 
@@ -258,5 +209,87 @@ void HttpServer::SendTcpResponseOKGetBinaryState(AsyncClient *client)
 
 	free(resonsespace);
 	free(xmlresponsespace);
+
+}
+
+void HttpServer::_handleSetup(AsyncClient * c, char *data, size_t len)
+{
+	char response[strlen_P(SETUP_XML_TEMPLATE) + 20];
+	sprintf_P(response, SETUP_XML_TEMPLATE, this->_name, this->_uuid);
+
+	char headers[strlen_P(HEADERS) + 10];
+	sprintf_P(headers, HEADERS, strlen(response));
+
+	c->write(headers, strlen(headers));
+	c->write(response, strlen(response));
+}
+
+void HttpServer::_handleEventService(AsyncClient * c, char *data, size_t len)
+{
+	char response[strlen_P(EVENTSERVICE_TEMPLATE)];
+	sprintf_P(response, EVENTSERVICE_TEMPLATE);
+
+	char headers[strlen_P(HEADERS) + 10];
+	sprintf_P(headers, HEADERS, strlen(response));
+
+	c->write(headers, strlen(headers));
+	c->write(response, strlen(response));
+}
+
+void HttpServer::_handleMetaInfoService(AsyncClient * c, char *data, size_t len)
+{
+	char response[strlen_P(EMPTYSERVICE_TEMPLATE)];
+	sprintf_P(response, EMPTYSERVICE_TEMPLATE);
+
+	char headers[strlen_P(HEADERS) + 10];
+	sprintf_P(headers, HEADERS, strlen(response));
+
+	c->write(headers, strlen(headers));
+	c->write(response, strlen(response));
+}
+
+void HttpServer::_handleControl(AsyncClient * c, char *data, size_t len)
+{
+	char content[len + 1];
+	memcpy(content, data, len);
+
+	// The default template is the one for GetBinaryState queries
+	const char * response_template = GETSTATE_TEMPLATE;
+
+	if (strstr(content, "u:GetBinaryState") != NULL)
+	{
+		this->SendTcpResponseOKGetBinaryState(c);
+		return;
+	}
+
+	if (strstr(content, "SetBinaryState") != NULL) 
+	{
+
+		if (strstr(content, "<BinaryState>0</BinaryState>") != NULL) 
+		{
+			this->_methodOff(this->_arg);
+		}
+
+		if (strstr(content, "<BinaryState>1</BinaryState>") != NULL) 
+		{
+			this->_methodOn(this->_arg);
+		}
+
+		// Use a specific response template for SetBinaryState action
+		response_template = SETSTATE_TEMPLATE;
+
+	}
+
+	// Update current state
+
+	// Send response
+	char response[strlen_P(response_template)];
+	sprintf_P(response, response_template, 0);
+
+	char headers[strlen_P(HEADERS) + 10];
+	sprintf_P(headers, HEADERS, strlen(response));
+
+	c->write(headers, strlen(headers));
+	c->write(response, strlen(response));
 
 }

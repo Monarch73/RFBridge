@@ -138,6 +138,8 @@ void WebInterface::HandleRoot(AsyncWebServerRequest * request)
 	//response->addHeader("Access-Control-Allow-Origin", "http://www.monarch.de");
 	request->send(200, "text/html",outputbuffer);
 	//request->send(200, "text/html", outputbuffer);
+
+	//outputbuffer is static. Don't free it here.
 }
 
 void WebInterface::SetDevices(RCSwitch *myswitch, WemosDevices *myWemos, char *nameToDelete, char *urlToCall)

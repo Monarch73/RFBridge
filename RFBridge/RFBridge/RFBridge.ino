@@ -20,6 +20,7 @@ WemosDevices wemos=WemosDevices();
 RCSwitch mySwitch = RCSwitch();
 AsyncWebServer *server;
 int deletepause = 0;
+volatile int resetPause = 0;
 
 void initDevices()
 {
@@ -40,6 +41,7 @@ void initDevices()
 void setup() 
 {
 	Serial.begin(115200);
+	mySwitch.enableTransmit(2);
 	int zahl = analogRead(A0);
 	Serial.println(zahl);
 
@@ -56,8 +58,6 @@ void setup()
 	WebInterface::SetDevices(&mySwitch, &wemos,NULL,NULL);
 	if (WebInterface::estore->ssid[0] == 0)
 	{
-		pinMode(LED_BUILTIN, OUTPUT);
-		digitalWrite(LED_BUILTIN, 0);
 		Serial.println("No ssid defined");
 		/* You can remove the password parameter if you want the AP to be open. */
 		WiFi.softAP("EasyAlexa");
@@ -78,8 +78,6 @@ void setup()
 	if (WiFi.waitForConnectResult() != WL_CONNECTED) 
 	{
 		Serial.println("WiFi Failed.Entering setup mode.");
-		pinMode(LED_BUILTIN, OUTPUT);
-		digitalWrite(LED_BUILTIN, 0);
 		Serial.println("No ssid defined");
 		/* You can remove the password parameter if you want the AP to be open. */
 		WiFi.softAP("EasyAlexa");
@@ -98,10 +96,8 @@ void setup()
 	if (!MDNS.begin("esp8266")) {             // Start the mDNS responder for esp8266.local
 		Serial.println("Error setting up MDNS responder!");
 	}
-	Serial.println("V1.0");
 
 	wemos.Start();
-	mySwitch.enableTransmit(2);
 	initDevices();
 	server = new AsyncWebServer(80);
 	server->on("/", HTTP_GET, WebInterface::HandleRoot);
@@ -116,6 +112,7 @@ void setup()
 	server->on("/esocket", HTTP_GET, WebInterface::HandleEsocket);
 	server->on("/edelete", HTTP_GET, WebInterface::HandleEDelete);
 	server->on("/estore", HTTP_POST, WebInterface::HandleEStore);
+	server->on("/format", HTTP_GET, WebInterface::HandleFormat);
 
 
 	server->onNotFound([](AsyncWebServerRequest * request) {
@@ -216,6 +213,25 @@ void loop() {
 	ArduinoOTA.handle();
 	// put your main code here, to run repeatedly:
 	wemos.Handle();
+
+	if (resetPause != 0)
+	{
+		if (--resetPause != 0)
+		{
+			delay(100);
+		}
+		else
+		{
+			resetPause = 0;
+			ESP.restart();
+		}
+	}
+
+	if (WebInterface::reset == true)
+	{
+		WebInterface::reset = false;
+		resetPause = 50;
+	}
 
 	if ((nameToDelete = WebInterface::GetNameToDelete())!=NULL)
 	{

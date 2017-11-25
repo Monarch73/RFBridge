@@ -46,9 +46,11 @@ void HttpServer::onData(void *obj, AsyncClient* c, void *buf, size_t len) {
 	{
 		char *inputBuffer = (char *)buf;
 
+#ifdef DEBUG
 		for (uint cou = 0; cou < len; cou++)
 			Serial.print(*(inputBuffer+cou));
 		Serial.println("");
+#endif // DEBUG
 
 		const char match[] = { "GET /setup.xml HTTP/1.1" };
 		const char matchService[] = { "GET /eventservice.xml HTTP/1.1" };
@@ -189,7 +191,7 @@ void HttpServer::SendTcpResponseOKGetBinaryState(AsyncClient *client)
 
 	const char *response =
 		"HTTP/1.1 200 OK\r\n"
-		"Content-Type: text/plain\r\n"
+		"Content-Type: text/xml\r\n"
 		"Content-Length: %d\r\n\r\n%s";
 
 	const char *xmlResponse = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
@@ -204,7 +206,7 @@ void HttpServer::SendTcpResponseOKGetBinaryState(AsyncClient *client)
 	sprintf(xmlresponsespace, xmlResponse, this->state);
 	char *resonsespace = (char *)malloc(strlen(response) + strlen(xmlresponsespace) + 10);
 	sprintf(resonsespace, response, strlen(xmlResponse), xmlresponsespace);
-	//Serial.println(resonsespace);
+	Serial.println(resonsespace);
 	client->write(resonsespace, strlen(resonsespace));
 
 	free(resonsespace);
@@ -252,15 +254,9 @@ void HttpServer::_handleControl(AsyncClient * c, char *data, size_t len)
 {
 	char content[len + 1];
 	memcpy(content, data, len);
-
+	content[len] = 0;
 	// The default template is the one for GetBinaryState queries
 	const char * response_template = GETSTATE_TEMPLATE;
-
-	if (strstr(content, "u:GetBinaryState") != NULL)
-	{
-		this->SendTcpResponseOKGetBinaryState(c);
-		return;
-	}
 
 	if (strstr(content, "SetBinaryState") != NULL) 
 	{
@@ -284,7 +280,7 @@ void HttpServer::_handleControl(AsyncClient * c, char *data, size_t len)
 
 	// Send response
 	char response[strlen_P(response_template)];
-	sprintf_P(response, response_template, 0);
+	sprintf_P(response, response_template, this->state);
 
 	char headers[strlen_P(HEADERS) + 10];
 	sprintf_P(headers, HEADERS, strlen(response));

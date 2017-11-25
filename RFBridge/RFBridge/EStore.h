@@ -24,7 +24,7 @@ public:
 	void dipSwitchLoad(int, dipswitches_struct *);
 	void dipSwitchDelete(int);
 	void dipSwitchSave(int, dipswitches_struct *);
-	void wifiSave(void);
+	void wifiSave(bool format);
 	int dipSwitchFindFree(void);
 private:
 

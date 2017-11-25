@@ -7,8 +7,8 @@ struct dipswitches_struct
 	char code[6];
 	char tri1[16];
 	char tri2[16];
-	char urlOn[91];
-	char urlOff[91];
+	char urlOn[160];
+	char urlOff[160];
 };
 
 #endif

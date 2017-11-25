@@ -7,7 +7,7 @@
 char HTML_HEADER[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>RFBridge</title><link rel=\"stylesheet/less\" type=\"text/css\" href=\"http://www.monarch.de/c64-theme/css/style.css\" />"
 "<script src=\"http://www.monarch.de/c64-theme/js/less-1.3.0.min.js\" type=\"text/javascript\"></script><script>function changeFont(font) {document.getElementById('font-div').className = font; }"
 "function changeFontSize(fontsize) { document.getElementById('font-size-div').className = fontsize; }</script><link rel=\"shortcut icon\" href=\"http://www.monarch.de/c64-theme/images/favicon.ico\">"
-"</head><body><div class=\"container\"><div id=\"font-div\" class=\"c64pm\">";
+"</head><body><div class=\"container\"><div id=\"font-div\" class=\"c64u\">";
 
 char HTML_HEADER_SETUP[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>RFBridge</title>"
 "</head><body>";
@@ -15,11 +15,11 @@ char HTML_HEADER_SETUP[] PROGMEM = "<!DOCTYPE html><html lang=\"en\"><head><meta
 
 char HTML_SSID[] PROGMEM =
 "<h1>RFBridge SETUP</h1>"
-"<p><form method=\"POST\" action=\"/setup\">SSID:<input type=\"TEXT\" name=\"ssid\" /> Password:<input type=\"TEXT\" name=\"password\" /> <input type=\"submit\" name=\"send\" value=\"save\" /></form></p>"
+"<p><form method=\"POST\" action=\"/setup\">SSID:<input type=\"TEXT\" name=\"ssid\" /> Password:<input type=\"TEXT\" name=\"password\" /><input type=\"checkbox\" id=\"format\" name=\"format\" value=\"format\" /><label for=\"format\">initialize (format) Storage</lable><input type=\"submit\" name=\"send\" value=\"save\" /></form></p>"
 "</body>";
 
 char HTML_SSIDOK[] PROGMEM =
-"<h1>Configuration OK - Please reset device.</h1>"
+"<h1>Configuration OK - Device restarting in a couple of seconds.</h1>"
 "</body>";
 
 char HTML_TITLE[] PROGMEM =
@@ -28,6 +28,7 @@ char HTML_TITLE[] PROGMEM =
 char HTML_CONTROL[] PROGMEM =
 "<p><form method=\"POST\" action=\"/send\"><table width=\"80%\" border=\"1\"><thead><tr><th colspan=\"2\">Instant</th></tr><tr><td>Housecode</td><td><input type=\"TEXT\" name=\"house\" /></td></tr><td>Code</td><td><input type=\"TEXT\" name=\"code\" /></td></tr><tr><td>on/off(0/1)</td><td><input type=\"TEXT\" name=\"onoff\" /></td></tr><tr><td>Tristate</td><td><input type=\"text\" name=\"tri\"></td></tr><tr><td colspan=\"2\" align=\"center\"><input type=\"submit\" name=\"send\" value=\"action\" /></td></tr></table></form></p>"
 "<p><form method=\"POST\" action=\"/estore\"><table width=\"80%\" border=\"5\"><thead><tr><th colspan=\"2\">Switch Configuration</th></tr></thead><tr><td>Name</td><td><input type=\"TEXT\" name=\"name\" /></td></tr><tr><td>Housecode</td><td><input type=\"TEXT\" name=\"house\" /></td></tr><tr><td>Code</td><td><input type=\"TEXT\" name=\"code\" /></td></tr><tr><td colspan=\"2\">&nbsp;</td></tr><tr><td>Tristate on</td><td><input type=\"text\" name=\"tri1\"></td></tr><tr><td>Tristate off</td><td><input type=\"text\" name=\"tri2\"></td></tr><tr><td colspan=\"2\">&nbsp;</td></tr><tr><td>URL on</td><td><input type=\"text\" name=\"url1\"></td></tr><td>URL off</td><td><input type=\"text\" name=\"url2\"></td></tr><td>&nbsp;</td><td align=\"center\"><input type=\"submit\" name=\"speichern\" value=\"save\" /></td></tr></table></form></p>"
+"<p><a href=\"/download\"><button>Download Config</button></a>&nbsp;<a href=\"/upload\"><button>Upload Config</button></a></p>"
 "</div></div></body>";
 
 char HTML_DEVCONTROL_1[] PROGMEM =
@@ -43,6 +44,7 @@ char HTML_DEVCONTROL_4[] PROGMEM =
 
 EStore *WebInterface::estore;
 bool WebInterface::rebuildHTML;
+volatile bool WebInterface::reset = false;
 char *WebInterface::outputbuffer=NULL;
 RCSwitch *WebInterface::_mySwitch;
 WemosDevices *WebInterface::_myWemos=NULL;
@@ -63,16 +65,32 @@ void WebInterface::handleSetupSSID(AsyncWebServerRequest *request)
 	char setupoutputbuffer[sizeof(HTML_HEADER_SETUP)+sizeof(HTML_SSIDOK)+5];
 	String a = request->arg("ssid");
 	String b = request->arg("password");
+	String c = request->arg("format");
+
+	bool format = false;
+	if (c.compareTo("format") == 0)
+	{
+		format = true;
+	}
 
 	strcpy(WebInterface::estore->ssid, a.c_str());
 	strcpy(WebInterface::estore->password, b.c_str());
 
-	WebInterface::estore->wifiSave();
+	WebInterface::estore->wifiSave(format);
 
 	strcpy_P(setupoutputbuffer, HTML_HEADER_SETUP);
 	strcat_P(setupoutputbuffer, HTML_SSIDOK);
 	request->send(200, "text / plain", setupoutputbuffer);
+	WebInterface::reset = true;
 }
+
+void WebInterface::HandleFormat(AsyncWebServerRequest *request)
+{
+	WebInterface::rebuildHTML = true;
+	WebInterface::estore->wifiSave(true);
+	WebInterface::HandleRoot(request);
+}
+
 
 void WebInterface::HandleRoot(AsyncWebServerRequest * request)
 {
@@ -134,11 +152,7 @@ void WebInterface::HandleRoot(AsyncWebServerRequest * request)
 		strcat_P(outputbuffer, HTML_CONTROL);
 		rebuildHTML = false;
 	}
-	//AsyncWebServerResponse * response = new AsyncBasicResponse(200, "text/html",outputbuffer); // Not modified
-	//response->addHeader("Access-Control-Allow-Origin", "http://www.monarch.de");
 	request->send(200, "text/html",outputbuffer);
-	//request->send(200, "text/html", outputbuffer);
-
 	//outputbuffer is static. Don't free it here.
 }
 
@@ -166,7 +180,6 @@ void WebInterface::TurnOn(void * arg)
 	}
 	else
 	{
-
 		_mySwitch->switchOn(dp.housecode, dp.code);
 	}
 	if (_myWemos != NULL)
@@ -223,6 +236,7 @@ volatile char * WebInterface::GetUrlToCall()
 {
 	return WebInterface::_urlToCall;
 }
+
 
 void WebInterface::HandleSpecificArg(AsyncWebServerRequest * request)
 {

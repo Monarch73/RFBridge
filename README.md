@@ -3,7 +3,8 @@ This Project uses an esp8266 board as a hub to control RF-Switches via Amazon Ec
 
 Its basically a more stable reimplementation, enhanced version of fauxmoESP by https://bitbucket.org/xoseperez/
 
-Status of this dokumentation is incomplete. Parts that still need work are marked by @@todo
+## This Project is not activly maintained. Please head over to the newer RFBridge2 Projekt.
+https://github.com/Monarch73/RFBridge2
 
 # Known Problems
 
